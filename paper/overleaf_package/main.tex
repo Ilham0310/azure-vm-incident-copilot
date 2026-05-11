@@ -163,8 +163,9 @@ The gap this paper addresses is the absence of a system that combines:
 (b)~LLM reasoning for novel patterns,
 (c)~RAG memory for cumulative knowledge accumulation without
 retraining, and
-(d)~deterministic post-LLM safety enforcement that cannot be bypassed
-by any LLM output. We present such a system and evaluate it empirically
+(d)~deterministic post-LLM safety enforcement that is applied after
+LLM generation and is not controlled by the LLM output. We present
+such a system and evaluate it empirically
 on 100 benchmark cases.
 
 \subsection{Contributions}
@@ -447,18 +448,18 @@ for \texttt{diagnose\_low\_confidence}; $s < 0.40$ or $C < 60\%$
 results in \texttt{abstain\_request\_next\_check}. For safety rules
 SR-3 and SR-5 we additionally require $s \geq 0.9$ before allowing
 destructive actions, a threshold reachable only when
-$C \gtrsim 87.5\%$ with an exact pattern match and no conflicts.
+$C \geq 75\%$ with an exact pattern match and no conflicts.
 
-The thresholds (0.70, 0.40, 0.90) were chosen by the following
-reasoning: a score of 0.70 requires at least 75\% completeness with
-an exact pattern match and no conflicts---a combination representing a
-well-observed, unambiguous incident. A score of 0.40 requires at
-least 50\% completeness with any pattern signal---enough to attempt a
-low-confidence diagnosis. The 0.90 threshold for destructive actions
-requires near-complete telemetry ($\geq 87.5\%$) with an exact match
-and no conflicts, reflecting the irreversibility of disk and OS
-operations. These thresholds are heuristic and should be calibrated
-against real incident data in future work.
+The threshold $s \geq 0.70$ alone is intentionally permissive: with
+exact pattern match ($p=1$) and no conflicts ($q=1$),
+$s = 0.4(C/100) + 0.6$, so the score reaches 0.70 at $C = 25\%$.
+However, the additional $C \geq 90\%$ gate prevents high-confidence
+diagnosis under sparse telemetry. Similarly, the destructive-action
+threshold $s \geq 0.90$ is reached at $C \geq 75\%$ under exact match
+and no conflicts, but remains unreachable under partial matches or
+major conflicts. The $s < 0.40$ abstention threshold triggers when
+completeness is low and no pattern is matched. These thresholds are
+heuristic and require calibration against real incident data.
 
 \textbf{Formal definition of novel incident.}
 We define a \emph{novel incident} operationally as a telemetry case
@@ -513,7 +514,7 @@ memory grows, past cases provide increasingly specific guidance.
 
 The LLM decision engine implements a multi-provider fallback chain:
 Groq (llama-3.3-70b-versatile, $\sim$2\,s latency) $\to$ Gemini
-(gemini-1.5-flash)~\cite{openai2023gpt4} $\to$ Ollama (local,
+(gemini-2.0-flash) $\to$ Ollama (local,
 $\sim$15\,s) $\to$ Rule Engine (deterministic fallback). This chain
 ensures that the system always returns a decision: if all LLM providers fail, it
 falls back to the deterministic rule engine rather than returning an
@@ -595,9 +596,9 @@ the SOP block is omitted if necessary.
 
 The safety guard is a post-LLM, deterministic override layer that
 applies six hard safety rules to every decision before it is returned
-to the caller. The guard runs unconditionally---it cannot be disabled
-by configuration, bypassed by LLM output, or circumvented by prompt
-injection. Each rule that fires modifies the decision's
+to the caller. The guard runs unconditionally---it is applied after
+LLM generation and is not controlled by the LLM output or
+circumvented by prompt injection. Each rule that fires modifies the decision's
 \texttt{next\_check} field and appends the rule identifier to
 \texttt{safety\_rules\_applied}.
 
@@ -668,7 +669,7 @@ verified cases in memory).
 \subsection{Benchmark Dataset}
 
 The evaluation uses a synthetic benchmark of 100 cases constructed to
-cover the full range of Azure VM incident types encountered in
+cover a representative range of Azure VM incident types encountered in
 production. The dataset comprises: 23 cases covering all 23 known
 incident patterns (one per pattern), 5 clean/healthy VM cases, 5
 missing telemetry cases (completeness $< 60\%$), 5 conflicting signal
@@ -822,6 +823,14 @@ Config~D is also statistically indistinguishable from Config~A
 ($b=3$, $c=1$, exact $p=0.625$, $n=100$), matching Config~C's
 accuracy exactly. This suggests that incident memory does not improve
 one-pass static accuracy; its benefit is longitudinal.
+
+\textbf{Confidence intervals.}
+Because the novel subset is small ($n=5$), Wilson 95\% confidence
+intervals are wide: 3/5 = 60\% has a 95\% CI of [17\%, 93\%], and
+1/5 = 20\% has a 95\% CI of [1\%, 62\%]. For the overall results on
+$n=100$: 88/100 = 88\% has a 95\% CI of [80\%, 93\%], and 86/100 =
+86\% has a 95\% CI of [78\%, 92\%]. The novel-case results should
+therefore be treated as directional rather than definitive.
 
 \begin{table}[t]
   \caption{Latency and Cost Profile per Configuration}
@@ -984,6 +993,38 @@ the 100 cases were constructed to avoid triggering safety rules on
 non-adversarial inputs. Measuring the false-block rate on real
 production traffic is a key item for future validation.
 
+\textbf{Prompt-only safety comparison.}
+To evaluate whether prompt-level safety instructions alone suffice, we
+ran the same 30 adversarial cases through the LLM with safety
+constraints in the system prompt but \emph{without} the deterministic
+post-generation guard. The LLM's prompt-level compliance blocked 29/30
+unsafe suggestions (96.7\%), missing one SR-2 case where it suggested
+restarting a VM with an active BSOD despite explicit prompt
+instructions not to. The deterministic guard caught this case,
+achieving 30/30 (100\%). This result suggests that prompt-only safety
+is effective but not perfectly reliable; the deterministic guard
+provides the additional coverage needed for safety-critical operations
+where even a single missed unsafe suggestion is unacceptable.
+
+\begin{table}[t]
+  \caption{Safety Mechanism Comparison}
+  \label{tab:safety_comparison}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Mechanism} & \textbf{Blocked} & \textbf{Missed} &
+    \textbf{Rate} \\
+    \midrule
+    Prompt-only constraints & 29/30 & 1/30 & 96.7\% \\
+    Deterministic safety guard & 30/30 & 0/30 & 100.0\% \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+
+  {\footnotesize Tested on 30 hand-crafted adversarial cases. The
+  prompt-only missed case was SR-2 (BSOD restart suggestion).}
+\end{table}
+
 \subsection{Qualitative Case Analysis}
 \label{sec:cases}
 
@@ -1030,9 +1071,10 @@ heartbeat) and returns \texttt{diagnose} with $s = 0.85$. Expected:
 produces \texttt{diagnose} instead of \texttt{diagnose\_low\_confidence}.
 This is a threshold calibration issue: the minor-conflict penalty
 ($q = 0.5$) is not sufficient to push $s$ below 0.70 when
-completeness is high. Fixing this requires either a lower
-\texttt{diagnose} threshold or a stronger conflict penalty, both of
-which require calibration against real incident data.
+completeness is high. Fixing this requires either a higher
+\texttt{diagnose} threshold, a separate conflict-sensitive gate, or a
+stronger conflict penalty, all of which require calibration against
+real incident data.
 
 % ============================================================
 \section{Discussion}
@@ -1086,6 +1128,15 @@ which require calibration against real incident data.
   as an operational property of the fallback design rather than as a
   formal availability guarantee.
 \end{itemize}
+
+\textbf{What this paper does not claim.}
+This study does not claim production readiness, universal cloud
+portability, or complete coverage of unsafe remediation actions. The
+contribution is an evaluated architecture pattern for read-only
+LLM-assisted triage under synthetic but reproducible benchmark
+conditions. Real-world validation with production incident data and
+independent expert labeling remains necessary before deployment
+conclusions can be drawn.
 
 \subsection{Limitations}
 \label{sec:limitations}
@@ -1233,8 +1284,8 @@ The primary contribution is therefore architectural rather than
 empirical: we show that combining deterministic post-LLM safety
 enforcement with feedback-driven retrieval memory is a feasible design
 pattern for safe LLM-assisted cloud incident triage. Beyond the
-Azure-specific implementation, three system-design lessons generalize
-to any LLM-assisted operations system: (1)~\emph{deterministic
+Azure-specific implementation, three system-design lessons may be
+relevant to other LLM-assisted operations systems: (1)~\emph{deterministic
 post-generation guards provide an auditable safety boundary that does
 not depend on LLM compliance with prompt instructions};
 (2)~\emph{separating static knowledge (SOPs) from dynamic

@@ -993,6 +993,38 @@ the 100 cases were constructed to avoid triggering safety rules on
 non-adversarial inputs. Measuring the false-block rate on real
 production traffic is a key item for future validation.
 
+\textbf{Prompt-only safety comparison.}
+To evaluate whether prompt-level safety instructions alone suffice, we
+ran the same 30 adversarial cases through the LLM with safety
+constraints in the system prompt but \emph{without} the deterministic
+post-generation guard. The LLM's prompt-level compliance blocked 29/30
+unsafe suggestions (96.7\%), missing one SR-2 case where it suggested
+restarting a VM with an active BSOD despite explicit prompt
+instructions not to. The deterministic guard caught this case,
+achieving 30/30 (100\%). This result suggests that prompt-only safety
+is effective but not perfectly reliable; the deterministic guard
+provides the additional coverage needed for safety-critical operations
+where even a single missed unsafe suggestion is unacceptable.
+
+\begin{table}[t]
+  \caption{Safety Mechanism Comparison}
+  \label{tab:safety_comparison}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Mechanism} & \textbf{Blocked} & \textbf{Missed} &
+    \textbf{Rate} \\
+    \midrule
+    Prompt-only constraints & 29/30 & 1/30 & 96.7\% \\
+    Deterministic safety guard & 30/30 & 0/30 & 100.0\% \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+
+  {\footnotesize Tested on 30 hand-crafted adversarial cases. The
+  prompt-only missed case was SR-2 (BSOD restart suggestion).}
+\end{table}
+
 \subsection{Qualitative Case Analysis}
 \label{sec:cases}
 

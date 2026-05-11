@@ -1,0 +1,292 @@
+{
+  "config_A": [
+    {
+      "case_id": "N01",
+      "error": "1 validation error for TelemetryInput\nmonitor_agent_status\n  Input should be 'Healthy', 'Degraded', 'Failed', 'NotInstalled' or 'Unknown' [type=enum, input_value='NotReporting', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/enum"
+    },
+    {
+      "case_id": "N02",
+      "case_name": "Agent Failed + App Unhealthy + Memory Normal",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.67,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N03",
+      "case_name": "Agent Degraded + App Healthy + High Disk Latency",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.84,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N04",
+      "error": "1 validation error for TelemetryInput\nmonitor_agent_status\n  Input should be 'Healthy', 'Degraded', 'Failed', 'NotInstalled' or 'Unknown' [type=enum, input_value='NotReporting', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/enum"
+    },
+    {
+      "case_id": "N05",
+      "error": "1 validation error for TelemetryInput\nmonitor_agent_status\n  Input should be 'Healthy', 'Degraded', 'Failed', 'NotInstalled' or 'Unknown' [type=enum, input_value='NotReporting', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/enum"
+    },
+    {
+      "case_id": "N06",
+      "case_name": "No Heartbeat + All Metrics Normal + Available",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.67,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N07",
+      "case_name": "No Heartbeat + Moderate CPU + Degraded Health",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.67,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N08",
+      "case_name": "No Heartbeat + High Memory + Normal CPU",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.67,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N09",
+      "case_name": "No Heartbeat + Disk Pressure + App OK",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.67,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N10",
+      "case_name": "No Heartbeat + NSG Inconclusive + Normal",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.69,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N11",
+      "case_name": "Network Timeout + Healthy VM + RDP Allow",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.56,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N12",
+      "case_name": "SSH Timeout + RDP Allow + App Degraded",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.56,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N13",
+      "case_name": "Both Timeout + NSG Allow + Healthy Agent",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.56,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N14",
+      "case_name": "Inconclusive Troubleshoot + High Memory",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.56,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N15",
+      "case_name": "NSG Deny SSH + Troubleshoot Allow + App Unhealthy",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.86,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N16",
+      "case_name": "Degraded Health + Normal Metrics + No Annotation",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.52,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N17",
+      "case_name": "Unavailable Health + Running + Normal CPU",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.52,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N18",
+      "case_name": "Degraded Health + Backup Failed + Moderate Load",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "confidence": 0.84,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N19",
+      "case_name": "Degraded Health + SSL Expired + Agent OK",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.82,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N20",
+      "case_name": "Unavailable Health + High Disk + App Degraded",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.52,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N21",
+      "case_name": "Moderate CPU + High Memory + Disk Pressure + App OK",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.52,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N22",
+      "case_name": "Low CPU + High Memory + Agent Degraded + Backup Failed",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "confidence": 0.84,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N23",
+      "case_name": "High CPU + Normal Memory + SSL Expiring + App Degraded",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.82,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N24",
+      "case_name": "Boot Stuck + Agent OK + App Healthy",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.82,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N25",
+      "case_name": "Normal Metrics + Disk IO High + Monitor Failed",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "confidence": 0.84,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N26",
+      "case_name": "Platform Available + App Unhealthy + All Metrics Normal",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.82,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N27",
+      "case_name": "Backup Failed + Disk 75% + SSL 7 days + App OK",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "confidence": 0.84,
+      "pattern_hint": "exact"
+    },
+    {
+      "case_id": "N28",
+      "case_name": "Memory 90% + CPU Normal + Agent Degraded + Disk OK",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.52,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N29",
+      "case_name": "CPU 80% + Disk 70% + Memory 70% + All Agents OK",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.52,
+      "pattern_hint": "none"
+    },
+    {
+      "case_id": "N30",
+      "case_name": "Provisioning Updating + Running + Agent OK + App Degraded",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "abstain_request_next_check",
+      "correct": false,
+      "confidence": 0.82,
+      "pattern_hint": "exact"
+    }
+  ],
+  "summary": {
+    "total": 30,
+    "correct": 8,
+    "accuracy": 26.7,
+    "config": "Rule Engine + Safety Guard (Config A)"
+  }
+}
