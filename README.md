@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Azure VM Incident Copilot
 
 A read-only diagnostic system for Azure VM incidents that automates triage for server down, SSH/RDP failures, performance degradation, network issues, and boot failures.
@@ -353,3 +354,6 @@ the expected tables before running the agent.
    - `[ERROR]` — Configuration or connectivity issue that must be fixed before running the agent.
 
 Exit codes: `0` = all healthy, `1` = config/auth error, `2` = query failures.
+=======
+# azure-vm-incident-copilot
+>>>>>>> 30a7a87ebccbbff099e78be78eb5a3e533a57e87

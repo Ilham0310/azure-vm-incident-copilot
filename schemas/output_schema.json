@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure VM Diagnostic Output",
+  "description": "Schema for diagnostic output with 7 required fields",
+  "type": "object",
+  "required": [
+    "decision",
+    "diagnosis",
+    "confidence_score",
+    "evidence",
+    "evidence_gap",
+    "next_check",
+    "explanation"
+  ],
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": [
+        "diagnose",
+        "diagnose_low_confidence",
+        "abstain_request_next_check"
+      ],
+      "description": "Decision state indicating diagnostic confidence level"
+    },
+    "diagnosis": {
+      "type": "string",
+      "description": "Human-readable description of the identified issue or healthy state"
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Confidence score from 0.0 to 1.0 indicating diagnostic certainty"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of telemetry signals that support the diagnosis"
+    },
+    "evidence_gap": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of missing or incomplete telemetry signals needed for higher confidence"
+    },
+    "next_check": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Specific diagnostic action to gather more information (required for abstain decisions)"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Multi-sentence reasoning describing why this decision was made"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,27 @@
+{
+  "decision": "abstain_request_next_check",
+  "diagnosis": "Critical signals missing or unknown",
+  "confidence_score": 0.64,
+  "evidence": [
+    "power_state=Deallocated",
+    "provisioning_state=Succeeded",
+    "resource_health_status=Unknown",
+    "boot_diagnostics_status=Unknown",
+    "azure_vm_agent_status=Unknown"
+  ],
+  "evidence_gap": [
+    "power_state",
+    "provisioning_state",
+    "resource_health_status"
+  ],
+  "next_check": "Gather critical telemetry: power_state, provisioning_state, resource_health_status",
+  "explanation": "Insufficient data for diagnosis: Critical signals missing or unknown. Confidence score is 0.64, which is below the threshold for diagnosis. Supporting evidence includes: power_state=Deallocated, provisioning_state=Succeeded, resource_health_status=Unknown, and 2 other signal(s). Missing or incomplete data: power_state, provisioning_state, resource_health_status. Recommended next step: Gather critical telemetry: power_state, provisioning_state, resource_health_status",
+  "incident_id": null,
+  "pattern_matched": null,
+  "is_novel_incident": false,
+  "novel_incident_description": "",
+  "llm_provider": "unknown",
+  "similar_incidents_used": 0,
+  "sops_consulted": [],
+  "safety_rules_applied": []
+}

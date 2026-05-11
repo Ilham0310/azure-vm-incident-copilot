@@ -1,0 +1,14 @@
+[
+  {
+    "vm": "copilot-vm-cpu",
+    "error": "1 validation error for TelemetryInput\nmonitor_agent_status\n  Input should be 'Healthy', 'Degraded', 'Failed', 'NotInstalled' or 'Unknown' [type=enum, input_value='NotReporting', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/enum"
+  },
+  {
+    "vm": "copilot-vm-disk",
+    "error": "1 validation error for TelemetryInput\nmonitor_agent_status\n  Input should be 'Healthy', 'Degraded', 'Failed', 'NotInstalled' or 'Unknown' [type=enum, input_value='NotReporting', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/enum"
+  },
+  {
+    "vm": "testVM2",
+    "error": "1 validation error for TelemetryInput\nmonitor_agent_status\n  Input should be 'Healthy', 'Degraded', 'Failed', 'NotInstalled' or 'Unknown' [type=enum, input_value='NotReporting', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.12/v/enum"
+  }
+]

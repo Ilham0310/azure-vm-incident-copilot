@@ -1,0 +1,47 @@
+[
+  {
+    "vm": "copilot-vm-cpu",
+    "vm_size": "Standard_B1s",
+    "power_state": "Running",
+    "agent_status": "Unknown",
+    "cpu_percent": 0.2,
+    "nsg_rdp": "Allow",
+    "nsg_ssh": "Allow",
+    "decision": "diagnose_low_confidence",
+    "diagnosis": "VM running but no heartbeat",
+    "confidence": 0.79,
+    "completeness": 85.0,
+    "next_check": "Azure Monitor Agent is not reporting. (1) Request JIT access: Azure Portal > Security Center > Just-in-time VM access > Request access for SSH/RDP (1-3 hours, provide justification). (2) Connect to VM. (3) Linux: sudo systemctl status azuremonitoragent \u2014 if failed: sudo systemctl restart azuremonitoragent. (4) Windows: Get-Service -Name AzureMonitorAgent \u2014 if stopped: Restart-Service AzureMonitorAgent. (5) If reinstall needed: Azure Portal > VM > Extensions > remove AzureMonitorLinuxAgent > re-add it and re-associate DCR.",
+    "safety_rules": []
+  },
+  {
+    "vm": "copilot-vm-disk",
+    "vm_size": "Standard_B1s",
+    "power_state": "Running",
+    "agent_status": "Unknown",
+    "cpu_percent": 1.8,
+    "nsg_rdp": "Allow",
+    "nsg_ssh": "Allow",
+    "decision": "diagnose_low_confidence",
+    "diagnosis": "VM running but no heartbeat",
+    "confidence": 0.79,
+    "completeness": 85.0,
+    "next_check": "Azure Monitor Agent is not reporting. (1) Request JIT access: Azure Portal > Security Center > Just-in-time VM access > Request access for SSH/RDP (1-3 hours, provide justification). (2) Connect to VM. (3) Linux: sudo systemctl status azuremonitoragent \u2014 if failed: sudo systemctl restart azuremonitoragent. (4) Windows: Get-Service -Name AzureMonitorAgent \u2014 if stopped: Restart-Service AzureMonitorAgent. (5) If reinstall needed: Azure Portal > VM > Extensions > remove AzureMonitorLinuxAgent > re-add it and re-associate DCR.",
+    "safety_rules": []
+  },
+  {
+    "vm": "testVM2",
+    "vm_size": "Standard_B1ms",
+    "power_state": "Running",
+    "agent_status": "Unknown",
+    "cpu_percent": 2.5,
+    "nsg_rdp": "Allow",
+    "nsg_ssh": "Allow",
+    "decision": "diagnose_low_confidence",
+    "diagnosis": "VM running but no heartbeat",
+    "confidence": 0.79,
+    "completeness": 85.0,
+    "next_check": "Azure Monitor Agent is not reporting. (1) Request JIT access: Azure Portal > Security Center > Just-in-time VM access > Request access for SSH/RDP (1-3 hours, provide justification). (2) Connect to VM. (3) Linux: sudo systemctl status azuremonitoragent \u2014 if failed: sudo systemctl restart azuremonitoragent. (4) Windows: Get-Service -Name AzureMonitorAgent \u2014 if stopped: Restart-Service AzureMonitorAgent. (5) If reinstall needed: Azure Portal > VM > Extensions > remove AzureMonitorLinuxAgent > re-add it and re-associate DCR.",
+    "safety_rules": []
+  }
+]

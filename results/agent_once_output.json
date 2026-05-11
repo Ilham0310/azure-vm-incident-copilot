@@ -1,0 +1,20 @@
+{
+  "decision": "diagnose",
+  "diagnosis": "NSG blocks RDP",
+  "confidence_score": 0.96,
+  "evidence": [
+    "nsg_allow_rdp_3389=False",
+    "connection_troubleshoot_rdp=Deny"
+  ],
+  "evidence_gap": [],
+  "next_check": "Review NSG rules for port 3389 and update if RDP access is required. Follow SOP_Azure Firewall Whitelisting or SOP_Azure Request Cloud Resource Access",
+  "explanation": "High confidence diagnosis: NSG blocks RDP. Confidence score is 0.96, indicating strong evidence for this assessment. Supporting evidence includes: nsg_allow_rdp_3389=False, connection_troubleshoot_rdp=Deny. Recommended next step: Review NSG rules for port 3389 and update if RDP access is required. Follow SOP_Azure Firewall Whitelisting or SOP_Azure Request Cloud Resource Access",
+  "incident_id": null,
+  "pattern_matched": null,
+  "is_novel_incident": false,
+  "novel_incident_description": "",
+  "llm_provider": "unknown",
+  "similar_incidents_used": 0,
+  "sops_consulted": [],
+  "safety_rules_applied": []
+}

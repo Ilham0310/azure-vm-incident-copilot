@@ -1,0 +1,11 @@
+# Azure VM Incident Copilot - Web UI Dependencies
+# Install with: pip install -r requirements-ui.txt
+
+# FastAPI for web dashboard backend
+fastapi>=0.110.0
+
+# Uvicorn for ASGI server
+uvicorn>=0.27.0
+
+# Include base runtime dependencies
+-r requirements.txt

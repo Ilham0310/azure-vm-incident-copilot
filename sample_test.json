@@ -1,0 +1,12 @@
+{
+  "power_state": "Stopped",
+  "provisioning_state": "Succeeded",
+  "resource_health_status": "Available",
+  "heartbeat_present": false,
+  "boot_diagnostics_status": "Normal",
+  "azure_vm_agent_status": "Healthy",
+  "cpu_percent": 0.0,
+  "memory_percent": 0.0,
+  "os_disk_percent_full": 45.0,
+  "data_completeness_percent": 95.0
+}

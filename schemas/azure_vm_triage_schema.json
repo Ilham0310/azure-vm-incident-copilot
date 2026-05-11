@@ -1,0 +1,292 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure VM Triage Telemetry Input",
+  "description": "Schema for Azure VM incident telemetry with 30+ signal fields",
+  "type": "object",
+  "required": [
+    "power_state",
+    "provisioning_state",
+    "resource_health_status"
+  ],
+  "properties": {
+    "power_state": {
+      "type": "string",
+      "enum": [
+        "Running",
+        "Stopped",
+        "Deallocated",
+        "Failed",
+        "Unknown"
+      ],
+      "description": "VM power state"
+    },
+    "provisioning_state": {
+      "type": "string",
+      "enum": [
+        "Succeeded",
+        "Failed",
+        "In Progress",
+        "Unknown"
+      ],
+      "description": "VM provisioning state"
+    },
+    "resource_health_status": {
+      "type": "string",
+      "enum": [
+        "Available",
+        "Degraded",
+        "Unavailable",
+        "Unknown"
+      ],
+      "description": "Azure resource health status"
+    },
+    "resource_health_annotation": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Resource health annotation text (may contain platform event keywords)"
+    },
+    "heartbeat_present": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "Whether VM heartbeat is present"
+    },
+    "heartbeat_last_received": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Timestamp of last heartbeat (ISO 8601 format)"
+    },
+    "boot_diagnostics_status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Normal",
+        "BSOD",
+        "KernelPanic",
+        "Stuck",
+        "Unknown",
+        null
+      ],
+      "description": "Boot diagnostics status"
+    },
+    "boot_diagnostics_error": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Boot diagnostics error message"
+    },
+    "azure_vm_agent_status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Healthy",
+        "Degraded",
+        "NotReporting",
+        "Failed",
+        "Unknown",
+        null
+      ],
+      "description": "Azure VM agent status"
+    },
+    "cpu_percent": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "CPU utilization percentage"
+    },
+    "memory_available_mb": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Available memory in megabytes"
+    },
+    "memory_percent": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Memory utilization percentage"
+    },
+    "os_disk_latency_ms": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "OS disk latency in milliseconds"
+    },
+    "data_disk_latency_ms": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Data disk latency in milliseconds"
+    },
+    "os_disk_percent_full": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "OS disk usage percentage"
+    },
+    "app_health_status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Healthy",
+        "Degraded",
+        "Unhealthy",
+        "Unknown",
+        null
+      ],
+      "description": "Application health status"
+    },
+    "app_error_message": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Application error message"
+    },
+    "nsg_allow_rdp_3389": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "Whether NSG allows RDP on port 3389"
+    },
+    "nsg_allow_ssh_22": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "Whether NSG allows SSH on port 22"
+    },
+    "connection_troubleshoot_rdp": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Allow",
+        "Deny",
+        "Inconclusive",
+        "Timeout",
+        "Unknown",
+        null
+      ],
+      "description": "Connection troubleshoot result for RDP"
+    },
+    "connection_troubleshoot_ssh": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Allow",
+        "Deny",
+        "Inconclusive",
+        "Timeout",
+        "Unknown",
+        null
+      ],
+      "description": "Connection troubleshoot result for SSH"
+    },
+    "connection_troubleshoot_verdict": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Connection troubleshoot verdict text"
+    },
+    "monitor_agent_status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Healthy",
+        "Degraded",
+        "Failed",
+        "NotInstalled",
+        "Unknown",
+        null
+      ],
+      "description": "Monitoring agent status"
+    },
+    "ssl_cert_days_remaining": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Days remaining until SSL certificate expiry"
+    },
+    "last_backup_status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Completed",
+        "Failed",
+        "Warning",
+        "InProgress",
+        "Unknown",
+        null
+      ],
+      "description": "Last backup job status"
+    },
+    "last_backup_time": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Timestamp of last backup job (ISO 8601 format)"
+    },
+    "data_completeness_percent": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Percentage of telemetry fields populated"
+    },
+    "missing_signals": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "description": "List of missing telemetry signal names"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "vm": "copilot-vm-cpu",
+    "vm_size": "Standard_B1s",
+    "power_state": "Running",
+    "agent_status": "Unknown",
+    "decision": "abstain_request_next_check",
+    "diagnosis": "Insufficient telemetry data",
+    "confidence": 0.21,
+    "completeness": 15.0,
+    "next_check": "Gather more telemetry data to reach at least 60% completeness",
+    "safety_rules": []
+  },
+  {
+    "vm": "copilot-vm-disk",
+    "vm_size": "Standard_B1s",
+    "power_state": "Running",
+    "agent_status": "Unknown",
+    "decision": "abstain_request_next_check",
+    "diagnosis": "Insufficient telemetry data",
+    "confidence": 0.21,
+    "completeness": 15.0,
+    "next_check": "Gather more telemetry data to reach at least 60% completeness",
+    "safety_rules": []
+  },
+  {
+    "vm": "testVM2",
+    "vm_size": "Standard_B1ms",
+    "power_state": "Running",
+    "agent_status": "Unknown",
+    "decision": "abstain_request_next_check",
+    "diagnosis": "Insufficient telemetry data",
+    "confidence": 0.21,
+    "completeness": 15.0,
+    "next_check": "Gather more telemetry data to reach at least 60% completeness",
+    "safety_rules": []
+  }
+]

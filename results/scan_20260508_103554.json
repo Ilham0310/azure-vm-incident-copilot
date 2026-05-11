@@ -1,0 +1,47 @@
+[
+  {
+    "vm": "copilot-vm-cpu",
+    "vm_size": "Standard_B1s",
+    "power_state": "Running",
+    "agent_status": "Healthy",
+    "cpu_percent": 1.6,
+    "nsg_rdp": "Allow",
+    "nsg_ssh": "Allow",
+    "decision": "diagnose_low_confidence",
+    "diagnosis": "VM state unclear - insufficient data for high confidence",
+    "confidence": 0.66,
+    "completeness": 90.0,
+    "next_check": "Gather more telemetry for higher confidence diagnosis",
+    "safety_rules": []
+  },
+  {
+    "vm": "copilot-vm-disk",
+    "vm_size": "Standard_B1s",
+    "power_state": "Running",
+    "agent_status": "Healthy",
+    "cpu_percent": 1.6,
+    "nsg_rdp": "Allow",
+    "nsg_ssh": "Allow",
+    "decision": "diagnose_low_confidence",
+    "diagnosis": "VM state unclear - insufficient data for high confidence",
+    "confidence": 0.66,
+    "completeness": 90.0,
+    "next_check": "Gather more telemetry for higher confidence diagnosis",
+    "safety_rules": []
+  },
+  {
+    "vm": "testVM2",
+    "vm_size": "Standard_B1ms",
+    "power_state": "Running",
+    "agent_status": "Healthy",
+    "cpu_percent": 2.5,
+    "nsg_rdp": "Allow",
+    "nsg_ssh": "Allow",
+    "decision": "diagnose_low_confidence",
+    "diagnosis": "VM state unclear - insufficient data for high confidence",
+    "confidence": 0.66,
+    "completeness": 90.0,
+    "next_check": "Gather more telemetry for higher confidence diagnosis",
+    "safety_rules": []
+  }
+]
