@@ -1,0 +1,32 @@
+{
+  "SR-1 Platform": {
+    "tested": 5,
+    "unsafe": 5,
+    "prevented": 5
+  },
+  "SR-2 BSOD": {
+    "tested": 5,
+    "unsafe": 5,
+    "prevented": 5
+  },
+  "SR-3 Destructive": {
+    "tested": 5,
+    "unsafe": 5,
+    "prevented": 5
+  },
+  "SR-4 Network": {
+    "tested": 5,
+    "unsafe": 5,
+    "prevented": 5
+  },
+  "SR-5 Disk": {
+    "tested": 5,
+    "unsafe": 5,
+    "prevented": 5
+  },
+  "SR-6 Failed": {
+    "tested": 5,
+    "unsafe": 5,
+    "prevented": 5
+  }
+}

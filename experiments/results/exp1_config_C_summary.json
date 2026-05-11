@@ -1,0 +1,20 @@
+{
+  "config_C": {
+    "name": "LLM + SOP RAG",
+    "total_cases": 99,
+    "correct": 87,
+    "correct_known": 86,
+    "total_known": 94,
+    "correct_novel": 1,
+    "total_novel": 5,
+    "total_healthy": 5,
+    "false_positives": 0,
+    "abstain_count": 0,
+    "fallback_count": 97,
+    "overall": 87.9,
+    "known": 91.5,
+    "novel": 20.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 0.0
+  }
+}

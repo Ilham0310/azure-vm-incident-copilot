@@ -1,0 +1,96 @@
+% fig4_architecture.tex
+% 6-layer pipeline diagram for IEEE Access paper
+% Include in main.tex with: \input{fig4_architecture}
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  layer/.style={
+    draw, rounded corners=4pt,
+    minimum width=12cm, minimum height=1.15cm,
+    align=center, font=\small\bfseries,
+    drop shadow={shadow xshift=1.5pt, shadow yshift=-1.5pt,
+                 fill=black!20, opacity=0.5}
+  },
+  arrow/.style={-Stealth, thick, gray!60, line width=1.2pt}
+]
+
+% ---- Layer 1 ----
+\node[layer, fill=blue!10, draw=blue!40] (L1) {%
+  Layer 1: Telemetry Ingestion \& Schema Validation\\
+  \textnormal{\scriptsize\color{gray!70}%
+    30+ fields \textbar{} 3 required \textbar{}
+    8 enum types \textbar{} completeness score $C$}%
+};
+
+% ---- Layer 2 ----
+\node[layer, fill=green!10, draw=green!40, below=of L1] (L2) {%
+  Layer 2: Confidence Scoring \& Completeness Assessment\\
+  \textnormal{\scriptsize\color{gray!70}%
+    $s = 0.4\,C/100 + 0.3\,w_p + 0.3\,w_c$
+    \quad HIGH / MED / LOW tiers}%
+};
+
+% ---- Layer 3 ----
+\node[layer, fill=blue!10, draw=blue!40, below=of L2] (L3) {%
+  Layer 3: RAG Memory \& SOP Knowledge Base\\
+  \textnormal{\scriptsize\color{gray!70}%
+    ChromaDB~1.5.6 \textbar{} all-MiniLM-L6-v2 \textbar{}
+    dual collections \textbar{} cosine $\geq 0.75$}%
+};
+
+% ---- Layer 4 ----
+\node[layer, fill=green!10, draw=green!40, below=of L3] (L4) {%
+  Layer 4: LLM Decision Engine with Provider Fallback\\
+  \textnormal{\scriptsize\color{gray!70}%
+    Groq $\rightarrow$ Gemini $\rightarrow$
+    Ollama $\rightarrow$ Rule Engine \textbar{} temp = 0.1}%
+};
+
+% ---- Layer 5 (safety guard — visually distinct) ----
+\node[layer, fill=red!8, draw=red!50, line width=1.4pt,
+      below=of L4] (L5) {%
+  Layer 5: Deterministic Safety Guard\\
+  \textnormal{\scriptsize\color{red!60}%
+    SR-1 through SR-6 \textbar{}
+    post-LLM override \textbar{} cannot be bypassed}%
+};
+
+% ---- Layer 6 ----
+\node[layer, fill=blue!10, draw=blue!40, below=of L5] (L6) {%
+  Layer 6: Feedback-Driven Memory Update Loop\\
+  \textnormal{\scriptsize\color{gray!70}%
+    incident storage \textbar{} human verification \textbar{}
+    verified case prioritization}%
+};
+
+% ---- Arrows between layers ----
+\draw[arrow] (L1) -- (L2);
+\draw[arrow] (L2) -- (L3);
+\draw[arrow] (L3) -- (L4);
+\draw[arrow] (L4) -- (L5);
+\draw[arrow] (L5) -- (L6);
+
+% ---- Input label ----
+\node[above=0.35cm of L1, font=\small\itshape, text=blue!60]
+  {Azure VM Telemetry (JSON)};
+
+% ---- Output label ----
+\node[below=0.35cm of L6, font=\small\itshape, text=blue!60]
+  {Structured Diagnostic Output (7 fields)};
+
+% ---- Safety guard annotation ----
+\node[right=0.4cm of L5, text width=2.8cm,
+      font=\scriptsize, align=left, text=red!65] {%
+  \textbf{Hard override:}\\
+  No LLM output\\
+  can bypass this.%
+};
+
+% ---- Feedback loop arrow (L6 -> L3, dashed orange) ----
+\draw[-Stealth, thick, dashed, orange!70, line width=1.2pt,
+      bend right=65]
+  (L6.west)
+  to node[left, font=\scriptsize, text=orange!80,
+          xshift=-2pt] {verified\\cases}
+  (L3.west);
+
+\end{tikzpicture}

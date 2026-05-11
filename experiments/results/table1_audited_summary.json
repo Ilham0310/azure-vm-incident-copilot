@@ -1,0 +1,46 @@
+{
+  "config_A": {
+    "total": 100,
+    "correct": 88,
+    "total_known": 95,
+    "correct_known": 87,
+    "total_novel": 5,
+    "correct_novel": 1,
+    "abstain": 0,
+    "fp": 0,
+    "total_healthy": 5
+  },
+  "config_B": {
+    "total": 100,
+    "correct": 73,
+    "total_known": 95,
+    "correct_known": 70,
+    "total_novel": 5,
+    "correct_novel": 3,
+    "abstain": 0,
+    "fp": 0,
+    "total_healthy": 5
+  },
+  "config_C": {
+    "total": 100,
+    "correct": 86,
+    "total_known": 95,
+    "correct_known": 85,
+    "total_novel": 5,
+    "correct_novel": 1,
+    "abstain": 0,
+    "fp": 0,
+    "total_healthy": 5
+  },
+  "config_D": {
+    "total": 100,
+    "correct": 86,
+    "total_known": 95,
+    "correct_known": 85,
+    "total_novel": 5,
+    "correct_novel": 1,
+    "abstain": 0,
+    "fp": 0,
+    "total_healthy": 5
+  }
+}

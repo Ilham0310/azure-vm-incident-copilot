@@ -1,0 +1,101 @@
+config,case_id,case_name,expected,actual,correct,provider,confidence,is_novel,is_healthy,pattern_hint
+config_D,039,High CPU Variation 1 (92.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,040,High CPU Variation 2 (94.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,041,High CPU Variation 3 (95.2%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,042,High CPU Variation 4 (96.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,043,High CPU Variation 5 (96.8%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,044,High CPU Variation 6 (97.5%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,045,High CPU Variation 7 (98.7%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,046,High CPU Variation 8 (99.0%),diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,047,Disk Full Variation 1 (91.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,048,Disk Full Variation 2 (92.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,049,Disk Full Variation 3 (93.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,050,Disk Full Variation 4 (94.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,051,Disk Full Variation 5 (95.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,052,Disk Full Variation 6 (96.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,053,Disk Full Variation 7 (97.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,054,Disk Full Variation 8 (97.5%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,055,Disk Full Variation 9 (98.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,056,Disk Full Variation 10 (99.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,057,Memory Exhaustion Variation 1 (93.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,058,Memory Exhaustion Variation 2 (94.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,059,Memory Exhaustion Variation 3 (95.0%),diagnose,diagnose,True,Ollama,0.7,False,False,none
+config_D,060,Memory Exhaustion Variation 4 (96.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,061,Memory Exhaustion Variation 5 (96.5%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,062,Memory Exhaustion Variation 6 (97.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,063,Memory Exhaustion Variation 7 (97.5%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,064,Memory Exhaustion Variation 8 (98.0%),diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,065,Memory Exhaustion Variation 9 (99.0%),diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,066,NSG Blocks RDP Variation 1,diagnose,diagnose,True,Ollama,1.0,False,False,exact
+config_D,067,NSG Blocks RDP Variation 2,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,068,NSG Blocks RDP Variation 3,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,069,NSG Blocks RDP Variation 4,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,070,NSG Blocks RDP Variation 5,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,071,NSG Blocks SSH Variation 1,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,072,NSG Blocks SSH Variation 2,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,073,NSG Blocks SSH Variation 3,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,074,NSG Blocks SSH Variation 4,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,075,NSG Blocks SSH Variation 5,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,076,SSL Expiry 0 Days Remaining,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,077,SSL Expiry 1 Days Remaining,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,078,SSL Expiry 3 Days Remaining,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,079,SSL Expiry 7 Days Remaining,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,080,SSL Expiry 14 Days Remaining,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,081,Backup Failure Variation 1,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,082,Backup Failure Variation 2,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,083,Backup Failure Variation 3,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,084,Backup Failure Variation 4,diagnose,diagnose,True,Groq,0.98,False,False,exact
+config_D,085,Backup Failure Variation 5,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,086,Multi-Signal: High CPU + Disk Full,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,087,Multi-Signal: Memory Exhaustion + Disk IO Saturation,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,088,Multi-Signal: High CPU + Agent Degraded + App Unhealthy,diagnose,diagnose,True,Groq,0.7,False,False,none
+config_D,089,Multi-Signal: Disk Full + Backup Failed + Monitor Degraded,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,090,Multi-Signal: Memory + CPU + SSL Expiring,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,091,Platform Event Variation 1,abstain_request_next_check,abstain_request_next_check,True,Groq,1.0,False,False,exact
+config_D,092,Platform Event Variation 2,abstain_request_next_check,abstain_request_next_check,True,Groq,1.0,False,False,exact
+config_D,093,Platform Event Variation 3,abstain_request_next_check,abstain_request_next_check,True,Groq,1.0,False,False,exact
+config_D,094,Platform Event Variation 4,abstain_request_next_check,abstain_request_next_check,True,Ollama,1.0,False,False,exact
+config_D,095,Platform Event Variation 5,abstain_request_next_check,abstain_request_next_check,True,Ollama,1.0,False,False,exact
+config_D,096,Novel: Memory High + Disk IO + App Unhealthy + Agent Healthy,diagnose_low_confidence,diagnose,False,Ollama,1.0,True,False,exact
+config_D,097,Novel: Agent NotReporting + Monitor Failed + App Degraded,diagnose_low_confidence,diagnose,False,Ollama,0.85,True,False,exact
+config_D,098,Novel: SSL Expired + Backup Failed + High Disk,diagnose_low_confidence,diagnose,False,Ollama,1.0,True,False,exact
+config_D,099,Novel: Boot Stuck + Agent Degraded + Network Timeout,diagnose,diagnose,True,Ollama,0.7,True,False,exact
+config_D,100,Novel: Intermittent Heartbeat + High Memory + NSG Inconclusive,diagnose_low_confidence,diagnose,False,Ollama,0.7,True,False,none
+config_D,001,VM Stopped by User,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,002,NSG Blocks RDP,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,003,NSG Blocks SSH,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,004,High CPU Saturation,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,005,OS Disk Full,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,006,Memory Exhaustion,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,007,Boot BSOD,diagnose,diagnose,True,Groq,0.7,False,False,exact
+config_D,008,Boot Kernel Panic,diagnose,diagnose,True,Groq,0.7,False,False,exact
+config_D,009,VM Running No Heartbeat,diagnose_low_confidence,diagnose,False,Groq,0.85,False,False,exact
+config_D,010,Resource Health Unavailable,diagnose_low_confidence,diagnose,False,Groq,0.7,False,False,exact
+config_D,011,Conflicting NSG Signals,diagnose_low_confidence,diagnose,False,Groq,1.0,False,False,exact
+config_D,012,App Unhealthy VM Healthy,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,013,Disk IO Saturation,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,014,VM Deallocated,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,015,Provisioning Failed,diagnose_low_confidence,diagnose,False,Groq,1.0,False,False,exact
+config_D,016,Failed State Insufficient Data,abstain_request_next_check,abstain_request_next_check,True,Groq,0.6,False,False,exact
+config_D,017,Platform Degradation,abstain_request_next_check,abstain_request_next_check,True,Groq,1.0,False,False,exact
+config_D,018,Boot Stuck,diagnose,diagnose,True,Groq,0.7,False,False,exact
+config_D,019,VM Agent Failed,diagnose_low_confidence,diagnose,False,Groq,1.0,False,False,exact
+config_D,020,Monitor Agent Failed,diagnose_low_confidence,diagnose,False,Groq,1.0,False,False,exact
+config_D,021,Healthy VM - All Green,diagnose,diagnose,True,Groq,0.7,False,True,none
+config_D,022,Healthy VM - Low Load,diagnose,diagnose,True,Groq,0.7,False,True,none
+config_D,023,Healthy VM - Normal Load,diagnose,diagnose,True,Groq,0.7,False,True,none
+config_D,024,Healthy VM - High Load But Stable,diagnose,diagnose,True,Groq,0.7,False,True,none
+config_D,025,Healthy VM - Recently Started,diagnose,diagnose,True,Groq,0.7,False,True,none
+config_D,026,Missing Telemetry - Low Completeness,abstain_request_next_check,abstain_request_next_check,True,Groq,0.3,False,False,none
+config_D,027,Missing Telemetry - No Metrics,abstain_request_next_check,abstain_request_next_check,True,Groq,0.3,False,False,none
+config_D,028,Missing Telemetry - No Agent Data,abstain_request_next_check,abstain_request_next_check,True,Groq,0.3,False,False,none
+config_D,029,Missing Telemetry - Critical Signals Unknown,abstain_request_next_check,abstain_request_next_check,True,rule_engine_fallback,0.3,False,False,none
+config_D,030,Missing Telemetry - Partial Boot Data,abstain_request_next_check,abstain_request_next_check,True,rule_engine_fallback,0.3,False,False,none
+config_D,031,Conflicting Signals - Power vs Metrics,abstain_request_next_check,abstain_request_next_check,True,rule_engine_fallback,0.34,False,False,exact
+config_D,032,Conflicting Signals - Health vs Metrics,diagnose_low_confidence,diagnose,False,Groq,0.66,False,False,exact
+config_D,033,Conflicting Signals - NSG Mismatch,diagnose_low_confidence,diagnose_low_confidence,True,rule_engine_fallback,0.66,False,False,none
+config_D,034,Conflicting Signals - Agent vs Heartbeat,diagnose_low_confidence,diagnose,False,Groq,0.81,False,False,exact
+config_D,035,Conflicting Signals - App vs VM Health,diagnose_low_confidence,diagnose,False,Groq,0.66,False,False,exact
+config_D,036,SSL Certificate Expiring Soon,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,037,Azure Backup Job Failed,diagnose,diagnose,True,Groq,1.0,False,False,exact
+config_D,038,VM Oversized - Rightsize Candidate,diagnose_low_confidence,diagnose,False,Ollama,1.0,False,False,exact

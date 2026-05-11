@@ -1,0 +1,84 @@
+% fig5_rag_pipeline.tex
+% RAG dual-collection pipeline diagram for IEEE Access paper
+% Include in main.tex with: \input{fig5_rag_pipeline}
+\begin{tikzpicture}[
+  node distance=0.55cm and 0.7cm,
+  store/.style={
+    draw, rounded corners=3pt,
+    minimum width=3.4cm, minimum height=1.3cm,
+    align=center, font=\scriptsize
+  },
+  step/.style={
+    draw, rounded corners=3pt,
+    minimum width=7.5cm, minimum height=0.95cm,
+    align=center, font=\scriptsize
+  },
+  arrow/.style={-Stealth, thick, gray!65}
+]
+
+% ---- Two collections (side by side) ----
+\node[store, fill=blue!10, draw=blue!35] (sop) {%
+  \textbf{SOP Collection}\\
+  Static \textbar{} 23 runbooks\\
+  curated from docs%
+};
+
+\node[store, fill=green!10, draw=green!35,
+      right=of sop] (mem) {%
+  \textbf{Incident Memory}\\
+  Dynamic \textbar{} grows\\
+  \texttt{verified} flag%
+};
+
+% ---- Embedding label above both ----
+\node[above=0.3cm of sop, xshift=2.05cm,
+      font=\scriptsize\itshape, text=gray!70] {%
+  all-MiniLM-L6-v2 (384-dim, cosine similarity)%
+};
+
+% ---- Query step ----
+\node[step, fill=yellow!10, draw=yellow!50,
+      below=0.65cm of sop, xshift=2.05cm] (query) {%
+  Query: new incident telemetry
+  $\xrightarrow{\text{encode}}$
+  cosine search (threshold 0.75)%
+};
+
+% ---- Results step ----
+\node[step, fill=orange!10, draw=orange!40,
+      below=0.45cm of query] (results) {%
+  Top-3 SOPs + Top-5 Incidents retrieved
+  (verified cases boosted in ranking)%
+};
+
+% ---- Injection step ----
+\node[step, fill=purple!8, draw=purple!30,
+      below=0.45cm of results] (inject) {%
+  Inject into LLM prompt as structured context blocks%
+};
+
+% ---- LLM box ----
+\node[step, fill=red!7, draw=red!35,
+      below=0.45cm of inject] (llm) {%
+  \textbf{Layer 4: LLM Decision Engine}\\
+  (Groq / Gemini / Ollama / Rule Engine)%
+};
+
+% ---- Arrows from collections to query ----
+\draw[arrow] (sop.south) -- ++(0,-0.35) -| (query.north);
+\draw[arrow] (mem.south) -- ++(0,-0.35) -| (query.north);
+
+% ---- Arrows down the pipeline ----
+\draw[arrow] (query)   -- (results);
+\draw[arrow] (results) -- (inject);
+\draw[arrow] (inject)  -- (llm);
+
+% ---- Feedback: outcome stored back to memory ----
+\draw[-Stealth, dashed, orange!70, thick, line width=1.1pt,
+      bend left=48]
+  (llm.east)
+  to node[right, font=\scriptsize, text=orange!75,
+          xshift=2pt] {store\\outcome}
+  (mem.east);
+
+\end{tikzpicture}

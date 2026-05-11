@@ -1,0 +1,20 @@
+{
+  "config_B": {
+    "name": "LLM Only",
+    "total_cases": 100,
+    "correct": 84,
+    "correct_known": 83,
+    "total_known": 95,
+    "correct_novel": 1,
+    "total_novel": 5,
+    "total_healthy": 5,
+    "false_positives": 0,
+    "abstain_count": 0,
+    "fallback_count": 57,
+    "overall": 84.0,
+    "known": 87.4,
+    "novel": 20.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 0.0
+  }
+}

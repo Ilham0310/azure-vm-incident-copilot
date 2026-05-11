@@ -1,0 +1,50 @@
+[
+  {
+    "cycle": 0,
+    "verified_cases_in_memory": 0,
+    "test_cases": 20,
+    "accuracy": 80.0,
+    "known_accuracy": 100.0,
+    "novel_accuracy": 20.0
+  },
+  {
+    "cycle": 1,
+    "verified_cases_in_memory": 10,
+    "test_cases": 20,
+    "accuracy": 80.0,
+    "known_accuracy": 100.0,
+    "novel_accuracy": 20.0
+  },
+  {
+    "cycle": 2,
+    "verified_cases_in_memory": 25,
+    "test_cases": 20,
+    "accuracy": 85.0,
+    "known_accuracy": 100.0,
+    "novel_accuracy": 40.0
+  },
+  {
+    "cycle": 3,
+    "verified_cases_in_memory": 50,
+    "test_cases": 20,
+    "accuracy": 90.0,
+    "known_accuracy": 100.0,
+    "novel_accuracy": 60.0
+  },
+  {
+    "cycle": 4,
+    "verified_cases_in_memory": 75,
+    "test_cases": 20,
+    "accuracy": 95.0,
+    "known_accuracy": 100.0,
+    "novel_accuracy": 80.0
+  },
+  {
+    "cycle": 5,
+    "verified_cases_in_memory": 80,
+    "test_cases": 20,
+    "accuracy": 95.0,
+    "known_accuracy": 100.0,
+    "novel_accuracy": 80.0
+  }
+]

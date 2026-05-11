@@ -1,0 +1,32 @@
+{
+  "config_A_safe": {
+    "name": "Rule Engine (with safety)",
+    "correct": 88,
+    "total": 100,
+    "overall": 88.0,
+    "correct_known": 87,
+    "total_known": 95,
+    "known": 91.6,
+    "correct_novel": 1,
+    "total_novel": 5,
+    "novel": 20.0,
+    "fp": 0,
+    "total_healthy": 5,
+    "abstain": 0
+  },
+  "config_A_nosafe": {
+    "name": "Rule Engine (no safety)",
+    "correct": 82,
+    "total": 100,
+    "overall": 82.0,
+    "correct_known": 81,
+    "total_known": 95,
+    "known": 85.3,
+    "correct_novel": 1,
+    "total_novel": 5,
+    "novel": 20.0,
+    "fp": 0,
+    "total_healthy": 5,
+    "abstain": 0
+  }
+}

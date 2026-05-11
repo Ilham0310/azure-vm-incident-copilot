@@ -1,0 +1,42 @@
+{
+  "config_A": {
+    "name": "Rule Engine (baseline)",
+    "overall": 87.0,
+    "known": 90.5,
+    "novel": 20.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 0.0,
+    "total_cases": 100,
+    "correct": 87
+  },
+  "config_B": {
+    "name": "LLM Only",
+    "overall": 88.0,
+    "known": 91.4,
+    "novel": 40.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 12.0,
+    "total_cases": 100,
+    "correct": 88
+  },
+  "config_C": {
+    "name": "LLM + SOP RAG",
+    "overall": 90.0,
+    "known": 93.3,
+    "novel": 60.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 10.0,
+    "total_cases": 100,
+    "correct": 90
+  },
+  "config_D": {
+    "name": "Full System",
+    "overall": 91.0,
+    "known": 94.3,
+    "novel": 60.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 9.0,
+    "total_cases": 100,
+    "correct": 91
+  }
+}

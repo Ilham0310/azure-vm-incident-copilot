@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure VM Incident Copilot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .badge-diagnose {
+            background-color: #10b981;
+            color: white;
+        }
+        .badge-low-confidence {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .badge-abstain {
+            background-color: #ef4444;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-900">Azure VM Incident Copilot</h1>
+            <p class="text-gray-600 mt-1">Real-time VM health monitoring and triage</p>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex space-x-8">
+                <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-active py-4 px-1 font-medium">
+                    Dashboard
+                </button>
+                <button onclick="showTab('feed')" id="tab-feed" class="py-4 px-1 font-medium text-gray-500 hover:text-gray-700">
+                    Live Feed
+                </button>
+                <button onclick="showTab('triage')" id="tab-triage" class="py-4 px-1 font-medium text-gray-500 hover:text-gray-700">
+                    Manual Triage
+                </button>
+                <button onclick="showTab('agent')" id="tab-agent" class="py-4 px-1 font-medium text-gray-500 hover:text-gray-700">
+                    Agent Control
+                </button>
+                <button onclick="showTab('benchmark')" id="tab-benchmark" class="py-4 px-1 font-medium text-gray-500 hover:text-gray-700">
+                    Benchmark
+                </button>
+                <button onclick="showTab('memory')" id="tab-memory" class="py-4 px-1 font-medium text-gray-500 hover:text-gray-700">
+                    Memory
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- VM Status Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4">VM Status</h2>
+                    <div id="vm-status-content">
+                        <p class="text-gray-500">No data available. Run agent or scan now.</p>
+                    </div>
+                </div>
+
+                <!-- Agent Status Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4">Agent Status</h2>
+                    <div id="agent-status-content">
+                        <p class="text-gray-500">Agent not running</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Actions</h2>
+                <div class="flex space-x-4">
+                    <button onclick="scanNow()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Scan Now
+                    </button>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="auto-refresh" onchange="toggleAutoRefresh()" class="rounded">
+                        <span>Auto-refresh (30s)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Feed Page -->
+        <div id="page-feed" class="page hidden">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Live Feed</h2>
+                    <div class="flex space-x-4">
+                        <select id="feed-filter" onchange="loadFeed()" class="border rounded px-3 py-1">
+                            <option value="">All Decisions</option>
+                            <option value="diagnose">Diagnose</option>
+                            <option value="diagnose_low_confidence">Low Confidence</option>
+                            <option value="abstain_request_next_check">Abstain</option>
+                        </select>
+                        <button onclick="exportFeedCSV()" class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700">
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">VM Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Decision</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diagnosis</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feed-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">No data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Triage Page -->
+        <div id="page-triage" class="page hidden">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Manual Triage</h2>
+                <p class="text-gray-600 mb-4">Paste telemetry JSON and run triage analysis</p>
+                
+                <textarea id="triage-input" rows="15" class="w-full border rounded p-3 font-mono text-sm mb-4"
+                    placeholder='{"power_state": "Running", "provisioning_state": "Succeeded", ...}'></textarea>
+                
+                <button onclick="runManualTriage()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Run Triage
+                </button>
+
+                <div id="triage-result" class="mt-6 hidden">
+                    <h3 class="text-lg font-semibold mb-3">Result</h3>
+                    <div id="triage-result-content" class="bg-gray-50 rounded p-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Control Page -->
+        <div id="page-agent" class="page hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Agent Configuration</h2>
+                <p class="text-sm text-gray-500 mb-4">Preconfigured from .env — no manual entry needed. Click "Scan All VMs" to triage every VM in the resource group.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">VM Name (single VM mode)</label>
+                        <input type="text" id="agent-vm-name" class="w-full border rounded px-3 py-2 bg-gray-50" value="testVM2" placeholder="Leave empty to scan all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Resource Group</label>
+                        <input type="text" id="agent-rg" class="w-full border rounded px-3 py-2 bg-gray-50" value="AZ26POC1-CO-LAB" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subscription ID</label>
+                        <input type="text" id="agent-subscription" class="w-full border rounded px-3 py-2 bg-gray-50" value="be8946da-5ca2-4129-ae53-b6124a0aa2d1" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Workspace ID (optional)</label>
+                        <input type="text" id="agent-workspace" class="w-full border rounded px-3 py-2 bg-gray-50" value="5d10cace-7461-4f3d-89ae-e9fc3405e7c9">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Interval (seconds)</label>
+                        <input type="number" id="agent-interval" class="w-full border rounded px-3 py-2" value="300">
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 mb-4">
+                    <button onclick="scanAllVMs()" id="btn-scan-all" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold">
+                        🔍 Scan All VMs
+                    </button>
+                    <button onclick="startAgent()" id="btn-start-agent" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                        Start Agent (single VM)
+                    </button>
+                    <button onclick="stopAgent()" id="btn-stop-agent" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
+                        Stop Agent
+                    </button>
+                </div>
+                
+                <!-- Scan Results -->
+                <div id="scan-results" class="hidden">
+                    <h3 class="text-lg font-semibold mb-2">Scan Results</h3>
+                    <div id="scan-results-content" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Agent Logs</h2>
+                <div id="agent-logs" class="bg-gray-900 text-green-400 rounded p-4 font-mono text-sm h-64 overflow-y-auto">
+                    <p>No logs available. Click "Scan All VMs" to start.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Page -->
+        <div id="page-memory" class="page hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Memory Stats Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4">Memory Statistics</h2>
+                    <div id="memory-stats-content">
+                        <p class="text-gray-500">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Verified Cases Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4">Verified Cases</h2>
+                    <div id="verified-stats-content">
+                        <p class="text-gray-500">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Novel Incidents Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4">Novel Incidents</h2>
+                    <div id="novel-stats-content">
+                        <p class="text-gray-500">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Patterns -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Top Incident Patterns</h2>
+                <div id="top-patterns-content">
+                    <p class="text-gray-500">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Novel Incidents View -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Novel Incidents</h2>
+                    <button onclick="loadNovelIncidents()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Refresh
+                    </button>
+                </div>
+                <div id="novel-incidents-list">
+                    <p class="text-gray-500">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benchmark Page -->
+        <div id="page-benchmark" class="page hidden">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Benchmark Testing</h2>
+                    <button onclick="runBenchmark()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                        Run Benchmark
+                    </button>
+                </div>
+
+                <div id="benchmark-summary" class="hidden mb-6">
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="bg-blue-50 rounded p-4">
+                            <p class="text-sm text-gray-600">Total Cases</p>
+                            <p id="bench-total" class="text-2xl font-bold text-blue-600">0</p>
+                        </div>
+                        <div class="bg-green-50 rounded p-4">
+                            <p class="text-sm text-gray-600">Passed</p>
+                            <p id="bench-passed" class="text-2xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="bg-red-50 rounded p-4">
+                            <p class="text-sm text-gray-600">Failed</p>
+                            <p id="bench-failed" class="text-2xl font-bold text-red-600">0</p>
+                        </div>
+                        <div class="bg-purple-50 rounded p-4">
+                            <p class="text-sm text-gray-600">Pass Rate</p>
+                            <p id="bench-rate" class="text-2xl font-bold text-purple-600">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="benchmark-results" class="hidden overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Case ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Case Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expected</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actual</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="benchmark-table-body" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Decision Details Modal -->
+    <div id="decision-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Decision Details</h3>
+                <button onclick="closeDecisionModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="decision-modal-content" class="space-y-4">
+                <!-- Content populated by JavaScript -->
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="submitFeedback(true)" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                    ✓ Correct
+                </button>
+                <button onclick="showFeedbackForm()" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">
+                    ✗ Incorrect
+                </button>
+                <button onclick="closeDecisionModal()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Form Modal -->
+    <div id="feedback-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Submit Correction</h3>
+                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Corrected Diagnosis</label>
+                    <textarea id="corrected-diagnosis" rows="3" class="w-full border rounded px-3 py-2" placeholder="Enter the correct diagnosis..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Corrected Next Check</label>
+                    <textarea id="corrected-next-check" rows="3" class="w-full border rounded px-3 py-2" placeholder="Enter the correct next check..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Outcome</label>
+                    <select id="feedback-outcome" class="w-full border rounded px-3 py-2">
+                        <option value="resolved">Resolved</option>
+                        <option value="escalated">Escalated</option>
+                        <option value="false_positive">False Positive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="submitFeedback(false)" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Submit Feedback
+                </button>
+                <button onclick="closeFeedbackModal()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let autoRefreshInterval = null;
+        let feedRefreshInterval = null;
+        let currentIncidentId = null;
+        let currentDecisionRecord = null;
+
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.add('hidden');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('nav button').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('text-gray-500', 'hover:text-gray-700');
+            });
+
+            // Show selected page
+            document.getElementById(`page-${tabName}`).classList.remove('hidden');
+
+            // Add active class to selected tab
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('text-gray-500', 'hover:text-gray-700');
+
+            // Load data for specific tabs
+            if (tabName === 'dashboard') {
+                loadDashboard();
+            } else if (tabName === 'feed') {
+                loadFeed();
+            } else if (tabName === 'memory') {
+                loadMemoryStats();
+                loadNovelIncidents();
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboard() {
+            try {
+                // Load VM status
+                const statusResponse = await fetch('/api/status');
+                if (statusResponse.ok) {
+                    const status = await statusResponse.json();
+                    displayVMStatus(status);
+                }
+
+                // Load agent status
+                const agentResponse = await fetch('/api/agent/status');
+                if (agentResponse.ok) {
+                    const agentStatus = await agentResponse.json();
+                    displayAgentStatus(agentStatus);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        function displayVMStatus(status) {
+            const output = status.diagnostic_output;
+            const decision = output.decision;
+            const badgeClass = getBadgeClass(decision);
+
+            const html = `
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-sm text-gray-600">VM Name:</span>
+                        <span class="font-medium ml-2">${status.vm_name}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Resource Group:</span>
+                        <span class="font-medium ml-2">${status.resource_group}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Decision:</span>
+                        <span class="ml-2 px-3 py-1 rounded text-sm font-medium ${badgeClass}">${decision}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Confidence:</span>
+                        <span class="font-medium ml-2">${output.confidence_score.toFixed(2)}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Diagnosis:</span>
+                        <p class="mt-1 text-sm">${output.diagnosis}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Last Scan:</span>
+                        <span class="font-medium ml-2">${new Date(status.timestamp).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('vm-status-content').innerHTML = html;
+        }
+
+        function displayAgentStatus(status) {
+            const html = `
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-sm text-gray-600">Status:</span>
+                        <span class="ml-2 px-3 py-1 rounded text-sm font-medium ${status.running ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${status.running ? 'Running' : 'Stopped'}
+                        </span>
+                    </div>
+                    ${status.config ? `
+                        <div>
+                            <span class="text-sm text-gray-600">Interval:</span>
+                            <span class="font-medium ml-2">${status.config.interval_seconds}s</span>
+                        </div>
+                    ` : ''}
+                    ${status.last_run ? `
+                        <div>
+                            <span class="text-sm text-gray-600">Last Run:</span>
+                            <span class="font-medium ml-2">${new Date(status.last_run).toLocaleString()}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            document.getElementById('agent-status-content').innerHTML = html;
+        }
+
+        async function scanNow() {
+            try {
+                const response = await fetch('/api/agent/scan-now', { method: 'POST' });
+                if (response.ok) {
+                    alert('Scan triggered successfully');
+                    setTimeout(loadDashboard, 2000);
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.error || 'Failed to trigger scan'}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('auto-refresh');
+            if (checkbox.checked) {
+                autoRefreshInterval = setInterval(loadDashboard, 30000);
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        }
+
+        // Live Feed functions
+        async function loadFeed() {
+            try {
+                const filter = document.getElementById('feed-filter').value;
+                const url = filter ? `/api/feed?decision=${filter}` : '/api/feed';
+                
+                const response = await fetch(url);
+                if (response.ok) {
+                    const records = await response.json();
+                    displayFeed(records);
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+            }
+        }
+
+        function displayFeed(records) {
+            const tbody = document.getElementById('feed-table-body');
+            
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No data available</td></tr>';
+                return;
+            }
+
+            const rows = records.map(record => {
+                const output = record.diagnostic_output;
+                const decision = output.decision;
+                const badgeClass = getBadgeClass(decision);
+                const incidentId = output.incident_id || 'unknown';
+                const isNovel = output.is_novel_incident || false;
+                const novelBadge = isNovel ? '<span class="ml-2 px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">🆕 Novel</span>' : '';
+
+                return `
+                    <tr class="hover:bg-gray-50 cursor-pointer" onclick="showDecisionDetails('${incidentId}', ${JSON.stringify(record).replace(/"/g, '&quot;')})">
+                        <td class="px-6 py-4 text-sm">${new Date(record.timestamp).toLocaleString()}</td>
+                        <td class="px-6 py-4 text-sm">${record.vm_name}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-xs font-medium ${badgeClass}">${decision}</span>
+                            ${novelBadge}
+                        </td>
+                        <td class="px-6 py-4 text-sm">${output.confidence_score.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-sm">${output.diagnosis.substring(0, 50)}...</td>
+                        <td class="px-6 py-4 text-sm">${record.cycle_duration_ms.toFixed(0)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows;
+        }
+
+        function exportFeedCSV() {
+            // Simple CSV export
+            alert('CSV export feature - would download feed data as CSV');
+        }
+
+        // Manual Triage functions
+        async function runManualTriage() {
+            try {
+                const input = document.getElementById('triage-input').value;
+                const telemetry = JSON.parse(input);
+
+                const response = await fetch('/api/triage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telemetry })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    displayTriageResult(result);
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${JSON.stringify(error, null, 2)}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function displayTriageResult(result) {
+            const badgeClass = getBadgeClass(result.decision);
+            
+            const html = `
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Decision:</span>
+                        <span class="ml-2 px-3 py-1 rounded text-sm font-medium ${badgeClass}">${result.decision}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Confidence Score:</span>
+                        <span class="ml-2">${result.confidence_score.toFixed(2)}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Diagnosis:</span>
+                        <p class="mt-1 text-sm">${result.diagnosis}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Evidence:</span>
+                        <ul class="mt-1 text-sm list-disc list-inside">
+                            ${result.evidence.map(e => `<li>${e}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ${result.evidence_gap.length > 0 ? `
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Evidence Gap:</span>
+                            <ul class="mt-1 text-sm list-disc list-inside">
+                                ${result.evidence_gap.map(e => `<li>${e}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    ${result.next_check ? `
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Next Check:</span>
+                            <p class="mt-1 text-sm">${result.next_check}</p>
+                        </div>
+                    ` : ''}
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Explanation:</span>
+                        <p class="mt-1 text-sm">${result.explanation}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('triage-result-content').innerHTML = html;
+            document.getElementById('triage-result').classList.remove('hidden');
+        }
+
+        // Agent Control functions
+        async function scanAllVMs() {
+            const btn = document.getElementById('btn-scan-all');
+            const resultsDiv = document.getElementById('scan-results');
+            const contentDiv = document.getElementById('scan-results-content');
+            const logsDiv = document.getElementById('agent-logs');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Scanning...';
+            logsDiv.innerHTML = '<p class="text-yellow-400">Scanning all VMs in resource group... This may take 1-3 minutes.</p>';
+            
+            try {
+                const response = await fetch('/api/agent/scan-all', { method: 'POST' });
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Scan failed');
+                }
+                
+                // Show results
+                resultsDiv.classList.remove('hidden');
+                contentDiv.innerHTML = '';
+                
+                const results = data.results || [];
+                logsDiv.innerHTML = `<p class="text-green-400">✓ Scan complete: ${results.length} VMs in ${data.resource_group}</p>`;
+                
+                results.forEach(r => {
+                    if (r.error) {
+                        contentDiv.innerHTML += `
+                            <div class="border border-red-200 rounded p-3 bg-red-50">
+                                <div class="font-semibold text-red-700">${r.vm}</div>
+                                <div class="text-sm text-red-600">Error: ${r.error}</div>
+                            </div>`;
+                    } else {
+                        const badgeColor = r.decision === 'diagnose' ? 'bg-red-100 text-red-800' :
+                                          r.decision === 'diagnose_low_confidence' ? 'bg-yellow-100 text-yellow-800' :
+                                          'bg-blue-100 text-blue-800';
+                        contentDiv.innerHTML += `
+                            <div class="border rounded p-3 bg-white shadow-sm">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-semibold">${r.vm}</span>
+                                    <span class="px-2 py-1 rounded text-xs font-medium ${badgeColor}">${r.decision}</span>
+                                </div>
+                                <div class="text-sm text-gray-700 mb-1">📋 ${r.diagnosis}</div>
+                                <div class="text-xs text-gray-500">
+                                    Power: ${r.power_state} | Agent: ${r.agent_status} | 
+                                    Confidence: ${(r.confidence * 100).toFixed(0)}% | 
+                                    Completeness: ${r.completeness?.toFixed(0) || '?'}%
+                                </div>
+                                ${r.next_check ? `<div class="text-xs text-blue-600 mt-1">→ ${r.next_check.substring(0, 150)}...</div>` : ''}
+                                ${r.safety_rules && r.safety_rules.length ? `<div class="text-xs text-red-600 mt-1">⚠️ Safety: ${r.safety_rules.join(', ')}</div>` : ''}
+                            </div>`;
+                    }
+                });
+                
+                // Log details
+                results.forEach(r => {
+                    if (!r.error) {
+                        logsDiv.innerHTML += `<p>${new Date().toLocaleTimeString()} [${r.vm}] ${r.decision} — ${r.diagnosis} (conf=${(r.confidence*100).toFixed(0)}%)</p>`;
+                    }
+                });
+                
+            } catch (error) {
+                logsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+                alert(`Scan failed: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 Scan All VMs';
+            }
+        }
+
+        async function startAgent() {
+            try {
+                const config = {
+                    vm_name: document.getElementById('agent-vm-name').value || null,
+                    resource_group: document.getElementById('agent-rg').value || null,
+                    subscription_id: document.getElementById('agent-subscription').value || null,
+                    workspace_id: document.getElementById('agent-workspace').value || null,
+                    interval_seconds: parseInt(document.getElementById('agent-interval').value)
+                };
+
+                const response = await fetch('/api/agent/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Agent started: ${data.message}\nConfig: ${JSON.stringify(data.config, null, 2)}`);
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.error || error.detail || 'Failed to start agent'}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function stopAgent() {
+            try {
+                const response = await fetch('/api/agent/stop', { method: 'POST' });
+                if (response.ok) {
+                    alert('Agent stopped successfully');
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.error || 'Failed to stop agent'}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Benchmark functions
+        async function runBenchmark() {
+            try {
+                const response = await fetch('/api/benchmark');
+                if (response.ok) {
+                    const results = await response.json();
+                    displayBenchmarkResults(results);
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.error || 'Failed to run benchmark'}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function displayBenchmarkResults(results) {
+            // Display summary
+            document.getElementById('bench-total').textContent = results.total_cases;
+            document.getElementById('bench-passed').textContent = results.passed;
+            document.getElementById('bench-failed').textContent = results.failed;
+            document.getElementById('bench-rate').textContent = `${results.pass_rate.toFixed(1)}%`;
+            document.getElementById('benchmark-summary').classList.remove('hidden');
+
+            // Display results table
+            const tbody = document.getElementById('benchmark-table-body');
+            const rows = results.case_results.map(result => {
+                const statusBadge = result.passed 
+                    ? '<span class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">PASS</span>'
+                    : '<span class="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">FAIL</span>';
+
+                return `
+                    <tr>
+                        <td class="px-6 py-4 text-sm">${result.case_id}</td>
+                        <td class="px-6 py-4 text-sm">${result.case_name}</td>
+                        <td class="px-6 py-4">${statusBadge}</td>
+                        <td class="px-6 py-4 text-sm">${result.expected_decision}</td>
+                        <td class="px-6 py-4 text-sm">${result.actual_decision}</td>
+                        <td class="px-6 py-4 text-sm">${result.confidence_score.toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows;
+            document.getElementById('benchmark-results').classList.remove('hidden');
+        }
+
+        // Utility functions
+        function getBadgeClass(decision) {
+            if (decision === 'diagnose') {
+                return 'badge-diagnose';
+            } else if (decision === 'diagnose_low_confidence') {
+                return 'badge-low-confidence';
+            } else {
+                return 'badge-abstain';
+            }
+        }
+
+        // Initialize dashboard on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+
+        // Memory tab functions
+        async function loadMemoryStats() {
+            try {
+                const response = await fetch('/api/memory/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    displayMemoryStats(stats);
+                }
+            } catch (error) {
+                console.error('Error loading memory stats:', error);
+            }
+        }
+
+        function displayMemoryStats(stats) {
+            const totalHtml = `
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-blue-600">${stats.total || 0}</div>
+                    <div class="text-sm text-gray-600">Total Incidents</div>
+                </div>
+            `;
+            document.getElementById('memory-stats-content').innerHTML = totalHtml;
+
+            const verifiedHtml = `
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-green-600">${stats.verified || 0}</div>
+                    <div class="text-sm text-gray-600">Human Verified</div>
+                    <div class="text-xs text-gray-500">${stats.total > 0 ? ((stats.verified / stats.total) * 100).toFixed(1) : 0}% verified</div>
+                </div>
+            `;
+            document.getElementById('verified-stats-content').innerHTML = verifiedHtml;
+
+            const novelHtml = `
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-purple-600">${stats.novel_incidents || 0}</div>
+                    <div class="text-sm text-gray-600">Novel Patterns</div>
+                </div>
+            `;
+            document.getElementById('novel-stats-content').innerHTML = novelHtml;
+
+            // Display top patterns
+            if (stats.top_patterns && stats.top_patterns.length > 0) {
+                const patternsHtml = stats.top_patterns.map(([pattern, count]) => `
+                    <div class="flex justify-between items-center py-2 border-b">
+                        <span class="text-sm font-medium">${pattern}</span>
+                        <span class="text-sm text-gray-600">${count} incidents</span>
+                    </div>
+                `).join('');
+                document.getElementById('top-patterns-content').innerHTML = patternsHtml;
+            } else {
+                document.getElementById('top-patterns-content').innerHTML = '<p class="text-gray-500">No patterns yet</p>';
+            }
+        }
+
+        async function loadNovelIncidents() {
+            try {
+                const response = await fetch('/api/novel-incidents');
+                if (response.ok) {
+                    const incidents = await response.json();
+                    displayNovelIncidents(incidents);
+                }
+            } catch (error) {
+                console.error('Error loading novel incidents:', error);
+            }
+        }
+
+        function displayNovelIncidents(incidents) {
+            const container = document.getElementById('novel-incidents-list');
+            
+            if (incidents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No novel incidents detected yet</p>';
+                return;
+            }
+
+            const html = incidents.map(incident => `
+                <div class="border rounded-lg p-4 mb-4 hover:bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 rounded text-sm font-medium bg-purple-100 text-purple-800">🆕 Novel Pattern</span>
+                            <span class="text-sm text-gray-600">${new Date(incident.timestamp).toLocaleString()}</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">${incident.vm_name}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-sm font-medium text-gray-700">Pattern:</span>
+                        <span class="text-sm text-gray-600 ml-2">${incident.pattern}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-sm font-medium text-gray-700">Telemetry:</span>
+                        <p class="text-sm text-gray-600 mt-1">${incident.telemetry_summary}</p>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-sm font-medium text-gray-700">Diagnosis:</span>
+                        <p class="text-sm text-gray-600 mt-1">${incident.diagnosis}</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-sm text-gray-600">Confidence: ${incident.confidence.toFixed(2)}</span>
+                        <button onclick="showIncidentFeedback('${incident.incident_id}')" class="text-sm text-blue-600 hover:text-blue-800">
+                            Provide Feedback →
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Decision details modal
+        function showDecisionDetails(incidentId, record) {
+            currentIncidentId = incidentId;
+            currentDecisionRecord = record;
+            
+            const output = record.diagnostic_output;
+            const decision = output.decision;
+            const badgeClass = getBadgeClass(decision);
+            
+            const llmProvider = output.llm_provider || 'unknown';
+            const similarIncidents = output.similar_incidents_used || 0;
+            const sopsConsulted = output.sops_consulted || [];
+            const safetyRules = output.safety_rules_applied || [];
+            const isNovel = output.is_novel_incident || false;
+            const novelDesc = output.novel_incident_description || '';
+            const patternMatched = output.pattern_matched || 'unknown';
+
+            const html = `
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Decision:</span>
+                        <span class="ml-2 px-3 py-1 rounded text-sm font-medium ${badgeClass}">${decision}</span>
+                        ${isNovel ? '<span class="ml-2 px-3 py-1 rounded text-sm font-medium bg-purple-100 text-purple-800">🆕 Novel</span>' : ''}
+                    </div>
+                    
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Confidence Score:</span>
+                        <span class="ml-2">${output.confidence_score.toFixed(2)}</span>
+                    </div>
+                    
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Diagnosis:</span>
+                        <p class="mt-1 text-sm text-gray-600">${output.diagnosis}</p>
+                    </div>
+                    
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Evidence:</span>
+                        <ul class="mt-1 text-sm list-disc list-inside text-gray-600">
+                            ${output.evidence.map(e => `<li>${e}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    ${output.evidence_gap.length > 0 ? `
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Evidence Gap:</span>
+                            <ul class="mt-1 text-sm list-disc list-inside text-gray-600">
+                                ${output.evidence_gap.map(e => `<li>${e}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${output.next_check ? `
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Next Check:</span>
+                            <p class="mt-1 text-sm text-gray-600">${output.next_check}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Explanation:</span>
+                        <p class="mt-1 text-sm text-gray-600">${output.explanation}</p>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">LLM Reasoning Metadata</h4>
+                        
+                        <div class="space-y-2 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-700">Provider:</span>
+                                <span class="ml-2 px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">${llmProvider}</span>
+                            </div>
+                            
+                            <div>
+                                <span class="font-medium text-gray-700">Pattern Matched:</span>
+                                <span class="ml-2 text-gray-600">${patternMatched}</span>
+                            </div>
+                            
+                            <div>
+                                <span class="font-medium text-gray-700">Similar Incidents Retrieved:</span>
+                                <span class="ml-2 text-gray-600">${similarIncidents}</span>
+                            </div>
+                            
+                            ${sopsConsulted.length > 0 ? `
+                                <div>
+                                    <span class="font-medium text-gray-700">SOPs Consulted:</span>
+                                    <ul class="mt-1 list-disc list-inside text-gray-600">
+                                        ${sopsConsulted.map(sop => `<li>${sop}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${safetyRules.length > 0 ? `
+                                <div>
+                                    <span class="font-medium text-gray-700">Safety Rules Applied:</span>
+                                    <div class="mt-1 space-x-2">
+                                        ${safetyRules.map(rule => `<span class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">⚠️ ${rule}</span>`).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${isNovel && novelDesc ? `
+                                <div>
+                                    <span class="font-medium text-gray-700">Novel Incident Description:</span>
+                                    <p class="mt-1 text-gray-600">${novelDesc}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('decision-modal-content').innerHTML = html;
+            document.getElementById('decision-modal').classList.remove('hidden');
+        }
+
+        function closeDecisionModal() {
+            document.getElementById('decision-modal').classList.add('hidden');
+            currentIncidentId = null;
+            currentDecisionRecord = null;
+        }
+
+        function showFeedbackForm() {
+            document.getElementById('decision-modal').classList.add('hidden');
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            document.getElementById('corrected-diagnosis').value = '';
+            document.getElementById('corrected-next-check').value = '';
+            document.getElementById('feedback-outcome').value = 'resolved';
+        }
+
+        async function submitFeedback(correct) {
+            if (!currentIncidentId || currentIncidentId === 'unknown') {
+                alert('Cannot submit feedback: incident ID not available');
+                return;
+            }
+
+            try {
+                const feedbackData = {
+                    correct: correct,
+                    outcome: 'resolved'
+                };
+
+                if (!correct) {
+                    feedbackData.corrected_diagnosis = document.getElementById('corrected-diagnosis').value;
+                    feedbackData.corrected_next_check = document.getElementById('corrected-next-check').value;
+                    feedbackData.outcome = document.getElementById('feedback-outcome').value;
+                }
+
+                const response = await fetch(`/api/feedback/${currentIncidentId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(feedbackData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(result.message || 'Feedback submitted successfully!');
+                    closeDecisionModal();
+                    closeFeedbackModal();
+                    loadFeed(); // Refresh feed
+                    if (document.getElementById('page-memory').classList.contains('hidden') === false) {
+                        loadMemoryStats(); // Refresh memory stats if on memory tab
+                    }
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.error || 'Failed to submit feedback'}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function showIncidentFeedback(incidentId) {
+            currentIncidentId = incidentId;
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

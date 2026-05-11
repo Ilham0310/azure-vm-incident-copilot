@@ -1,0 +1,19 @@
+{
+  "config_A": {
+    "name": "Rule Engine (baseline)",
+    "total_cases": 100,
+    "correct": 88,
+    "correct_known": 87,
+    "total_known": 95,
+    "correct_novel": 1,
+    "total_novel": 5,
+    "total_healthy": 5,
+    "false_positives": 0,
+    "abstain_count": 0,
+    "overall": 88.0,
+    "known": 91.6,
+    "novel": 20.0,
+    "false_positive_rate": 0.0,
+    "abstain_rate": 0.0
+  }
+}
