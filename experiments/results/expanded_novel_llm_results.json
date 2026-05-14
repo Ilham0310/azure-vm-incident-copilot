@@ -1,0 +1,337 @@
+{
+  "results": [
+    {
+      "case_id": "N01",
+      "case_name": "Agent NotReporting + App Degraded + Normal CPU",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM agent and monitor agent are not reporting, which may be causing the degraded application health status.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N02",
+      "case_name": "Agent Failed + App Unhealthy + Memory Normal",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM agent and monitor agent failures are likely causing the degraded resource health status and unhealthy application health status.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N03",
+      "case_name": "Agent Degraded + App Healthy + High Disk Latency",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM agent and monitor agent are degraded, indicating potential issues with guest-level monitoring and management.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N04",
+      "case_name": "Agent Healthy + Monitor NotReporting + App Degraded",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Application health is degraded, but VM and resource health appear normal.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N05",
+      "case_name": "Agent NotReporting + App Unhealthy + SSL Expiring",
+      "category": "agent_app_health",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM is degraded and unhealthy due to potential communication issues with Azure services.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N06",
+      "case_name": "No Heartbeat + All Metrics Normal + Available",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "diagnosis": "Azure VM is running but not sending heartbeats, indicating possible communication issues.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N07",
+      "case_name": "No Heartbeat + Moderate CPU + Degraded Health",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "The Azure VM is experiencing a degraded resource health status, likely due to a lack of heartbeat signal despite normal boot diagnostics and healthy agent statuses.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N08",
+      "case_name": "No Heartbeat + High Memory + Normal CPU",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM Agent and Monitor Agent are degraded, indicating potential communication issues with Azure services.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N09",
+      "case_name": "No Heartbeat + Disk Pressure + App OK",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "The Azure VM is running but not sending heartbeats, indicating a potential issue with the monitoring or communication between the VM and Azure.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N10",
+      "case_name": "No Heartbeat + NSG Inconclusive + Normal",
+      "category": "intermittent_heartbeat",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose_low_confidence",
+      "correct": true,
+      "diagnosis": "The Azure VM is running but heartbeat is not present, indicating possible communication issues.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N11",
+      "case_name": "Network Timeout + Healthy VM + RDP Allow",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "RDP connection timeout likely due to application or OS configuration issue.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N12",
+      "case_name": "SSH Timeout + RDP Allow + App Degraded",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "The Azure VM is experiencing application health issues despite normal system health metrics.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N13",
+      "case_name": "Both Timeout + NSG Allow + Healthy Agent",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "The Azure VM is experiencing connectivity issues with RDP and SSH timeouts, despite having healthy agent and monitor statuses.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N14",
+      "case_name": "Inconclusive Troubleshoot + High Memory",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "High memory usage may be impacting performance.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N15",
+      "case_name": "NSG Deny SSH + Troubleshoot Allow + App Unhealthy",
+      "category": "network_healthy_guest",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Application health issue despite healthy Azure VM and network connectivity.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N16",
+      "case_name": "Degraded Health + Normal Metrics + No Annotation",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM is running but has a degraded resource health status, indicating potential issues with underlying platform resources.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N17",
+      "case_name": "Unavailable Health + Running + Normal CPU",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "error",
+      "correct": false,
+      "error": "HTTPSConnectionPool(host='integrate.api.nvidia.com', port=443): Read timed out. (read timeout=60)",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N18",
+      "case_name": "Degraded Health + Backup Failed + Moderate Load",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM is experiencing degraded resource health despite normal boot diagnostics and healthy agent statuses.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N19",
+      "case_name": "Degraded Health + SSL Expired + Agent OK",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "SSL certificate has expired, which may be causing the degraded resource health status.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N20",
+      "case_name": "Unavailable Health + High Disk + App Degraded",
+      "category": "resource_health_inconclusive",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM is experiencing degraded application health despite normal boot diagnostics and healthy agent status.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N21",
+      "case_name": "Moderate CPU + High Memory + Disk Pressure + App OK",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "High CPU and memory usage, but overall system health appears normal.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N22",
+      "case_name": "Low CPU + High Memory + Agent Degraded + Backup Failed",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM agent and monitor agent are degraded, indicating potential issues with guest-level monitoring and management.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N23",
+      "case_name": "High CPU + Normal Memory + SSL Expiring + App Degraded",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "High CPU usage is likely causing the degraded resource health status and application health status.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N24",
+      "case_name": "Boot Stuck + Agent OK + App Healthy",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Boot diagnostics are stuck, but the VM is otherwise healthy and responsive.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N25",
+      "case_name": "Normal Metrics + Disk IO High + Monitor Failed",
+      "category": "multi_signal_ambiguous",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Monitor agent failure may be causing issues, but overall VM health appears normal.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N26",
+      "case_name": "Platform Available + App Unhealthy + All Metrics Normal",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Application health issue due to connection pool exhaustion.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N27",
+      "case_name": "Backup Failed + Disk 75% + SSL 7 days + App OK",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM is running but last backup failed, which may indicate a potential issue with backup configuration or connectivity.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N28",
+      "case_name": "Memory 90% + CPU Normal + Agent Degraded + Disk OK",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "Azure VM Agent and Monitor Agent are degraded, indicating potential issues with guest-level monitoring and management.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N29",
+      "case_name": "CPU 80% + Disk 70% + Memory 70% + All Agents OK",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "The Azure VM is running with high CPU and memory utilization, but all other signals indicate normal operation.",
+      "provider": "NVIDIA NIM"
+    },
+    {
+      "case_id": "N30",
+      "case_name": "Provisioning Updating + Running + Agent OK + App Degraded",
+      "category": "cross_subsystem",
+      "expected": "diagnose_low_confidence",
+      "actual": "diagnose",
+      "correct": false,
+      "diagnosis": "The Azure VM is experiencing degraded resource health and application health, but system metrics are within normal ranges.",
+      "provider": "NVIDIA NIM"
+    }
+  ],
+  "summary": {
+    "total": 30,
+    "correct": 2,
+    "accuracy": 6.7,
+    "provider": "NVIDIA NIM",
+    "model": "meta/llama-3.1-70b-instruct"
+  },
+  "per_category": {
+    "agent_app_health": {
+      "total": 5,
+      "correct": 0
+    },
+    "intermittent_heartbeat": {
+      "total": 5,
+      "correct": 2
+    },
+    "network_healthy_guest": {
+      "total": 5,
+      "correct": 0
+    },
+    "resource_health_inconclusive": {
+      "total": 5,
+      "correct": 0
+    },
+    "multi_signal_ambiguous": {
+      "total": 5,
+      "correct": 0
+    },
+    "cross_subsystem": {
+      "total": 5,
+      "correct": 0
+    }
+  }
+}
