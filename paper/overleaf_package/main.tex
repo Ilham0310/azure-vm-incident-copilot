@@ -56,7 +56,7 @@
 and Deterministic Safety Enforcement}
 
 \author{%
-  \IEEEauthorblockN{Mohammed Ilham}
+  \IEEEauthorblockN{Mohammed Ilham\textsuperscript{*}}
   \IEEEauthorblockA{\textit{Dept.\ of Computer Science and Engineering}\\
     \textit{R.V.\ College of Engineering}\\
     Bengaluru, India\\
@@ -70,6 +70,8 @@ and Deterministic Safety Enforcement}
 }
 
 \maketitle
+
+\noindent\textsuperscript{*}Corresponding author: Mohammed Ilham (mohammedilham.cs22@rvce.edu.in)
 
 % ============================================================
 % ABSTRACT
@@ -158,7 +160,8 @@ deterministic post-generation safety enforcement for LLM-generated
 cloud remediation suggestions in sufficient detail to evaluate its
 effect on triage safety.
 
-The gap this paper addresses is the absence of a system that combines:
+The gap this paper addresses is the limited published evidence on
+systems that combine:
 (a)~a strong deterministic rule baseline for known patterns,
 (b)~LLM reasoning for novel patterns,
 (c)~RAG memory for cumulative knowledge accumulation without
@@ -352,7 +355,7 @@ classifier-validator alternatives, which we leave to future work.
 
 \begin{figure*}[!t]
   \centering
-  \input{fig4_architecture}
+  \includegraphics[width=\textwidth]{fig4_architecture}
   \caption{The 6-layer Azure VM Incident Copilot architecture.
     Data flows top to bottom; the safety guard (Layer~5, red) is a
     hard post-LLM override that cannot be bypassed.
@@ -543,7 +546,7 @@ Listing~\ref{lst:schema}.
   "confidence_score": 0.0-1.0,
   "evidence": ["telemetry fields supporting diagnosis"],
   "evidence_gap": ["missing signals"],
-  "next_check": "string -- safe remediation step, or null",
+  "next_check": "string -- safe diagnostic next check or recommendation, or null",
   "explanation": "string -- multi-sentence reasoning",
   "pattern_matched": "string -- pattern name, unknown, or null",
   "is_novel_incident": true | false
@@ -588,8 +591,8 @@ The user prompt is constructed dynamically with four blocks:
 (4)~a structured reasoning directive ($\sim$100 tokens). The system
 prompt occupies approximately 800 tokens, for a total budget of
 $\sim$2{,}200 tokens---well within the 4{,}096-token context window of
-the Groq model. For Gemini~1.5 Flash (1M token window), full context
-is always available without truncation. When falling back to Ollama,
+the Groq model. For Gemini~2.0 Flash, the available context window is
+sufficient for the full prompt without truncation. When falling back to Ollama,
 the SOP block is omitted if necessary.
 
 \subsection{Layer 5: Deterministic Safety Guard}
@@ -755,10 +758,10 @@ significant.
 Evaluated on all 100 cases (62 Groq + 34 Ollama + 4 fallback).
 Overall accuracy is 86.0\% (86/100), with 89.5\% on known patterns
 (85/95) and 20.0\% on novel patterns (1/5). A McNemar test on all
-100 paired cases (exact $p=0.625$) shows no significant difference
-from Config~A. Config~D achieves the same accuracy as Config~C
-(86.0\%), suggesting that incident memory does not provide additional
-benefit in a single-cycle static evaluation---its value is
+100 paired cases ($b=3$, $c=1$, exact $p=0.625$) shows no significant
+difference from Config~A. Config~D achieves the same accuracy as
+Config~C (86.0\%), suggesting that incident memory does not provide
+additional benefit in a single-cycle static evaluation---its value is
 longitudinal, as demonstrated in Experiment~2.
 
 \begin{table}[t]
@@ -925,7 +928,8 @@ larger novel pattern set is a priority for future work.
 
 Table~\ref{tab:safety} presents the safety guard evaluation on 30
 adversarial cases, 5 per safety rule (SR-1 through SR-6). All 30
-unsafe suggestions were prevented, yielding 100\% prevention precision.
+unsafe suggestions were prevented, yielding a 100\% unsafe-suggestion
+prevention rate on the constructed adversarial set.
 
 \begin{table}[t]
   \caption{Safety Guard Validation: Prevention Rate per Rule}
@@ -945,7 +949,7 @@ unsafe suggestions were prevented, yielding 100\% prevention precision.
     \midrule
     \textbf{Total}         & \textbf{30} & \textbf{30} & \textbf{30} \\
     \bottomrule
-    \multicolumn{4}{l}{\small Safety Guard Precision: 100.0\%}
+    \multicolumn{4}{l}{\small Unsafe-suggestion prevention rate: 100.0\%}
   \end{tabular}
 \end{table}
 
@@ -964,12 +968,12 @@ suggestion in production. This tradeoff is intentional: for
 irreversible actions, the cost of a false negative far exceeds the
 cost of a false positive.
 
-\textbf{Safety guard precision and recall.}
-Table~\ref{tab:safety_metrics} summarises safety performance across
+\textbf{Safety guard prevention rate and false-block analysis.}
+Table~\ref{tab:safety_metrics} summarizes safety performance across
 both the adversarial test set and the 100-case benchmark.
 
 \begin{table}[t]
-  \caption{Safety Guard Precision and Recall}
+  \caption{Safety Guard Prevention and False-Block Rates}
   \label{tab:safety_metrics}
   \centering
   \begin{tabular}{lrr}
@@ -997,7 +1001,14 @@ production traffic is a key item for future validation.
 To evaluate whether prompt-level safety instructions alone suffice, we
 ran the same 30 adversarial cases through the LLM with safety
 constraints in the system prompt but \emph{without} the deterministic
-post-generation guard. The LLM's prompt-level compliance blocked 29/30
+post-generation guard. The prompt-only comparison used the same model
+configuration (Groq, llama-3.3-70b-versatile, temperature~$= 0.1$)
+and identical adversarial inputs as the guarded evaluation; the only
+change was disabling the deterministic post-generation guard while
+retaining safety instructions in the system prompt. Per-case
+prompt-only outputs are released in the repository.
+
+The LLM's prompt-level compliance blocked 29/30
 unsafe suggestions (96.7\%), missing one SR-2 case where it suggested
 restarting a VM with an active BSOD despite explicit prompt
 instructions not to. The deterministic guard caught this case,
@@ -1024,6 +1035,32 @@ where even a single missed unsafe suggestion is unacceptable.
   {\footnotesize Tested on 30 hand-crafted adversarial cases. The
   prompt-only missed case was SR-2 (BSOD restart suggestion).}
 \end{table}
+
+\subsection{Expanded Novel-Case Evaluation}
+\label{sec:expanded_novel}
+
+To address the small novel subset ($n=5$) in the main benchmark, we
+constructed an additional 30 novel cases spanning six categories of
+out-of-distribution signal combinations: agent/app health conflicts,
+intermittent heartbeat with normal metrics, network timeouts with
+healthy guests, resource health degradation with inconclusive signals,
+multi-signal ambiguous states, and cross-subsystem failures. These
+cases are designed to be genuinely out-of-distribution relative to the
+23 rule-engine patterns.
+
+On this expanded novel set, the rule engine with safety guard achieved
+8/30 correct (26.7\%, Wilson 95\% CI: [13\%, 45\%]). An LLM-only
+evaluation (without RAG context) achieved 2/30 correct (6.7\%, Wilson
+95\% CI: [1\%, 21\%]). The LLM without RAG context tends to
+over-diagnose---returning \texttt{diagnose} when the expected answer
+is \texttt{diagnose\_low\_confidence}---indicating that the LLM lacks
+calibration for ambiguous multi-signal cases without SOP guidance.
+
+These results confirm that (a)~the rule engine struggles with
+out-of-distribution cases, and (b)~the LLM alone is not sufficient
+without RAG context to provide appropriate confidence calibration.
+The expanded novel-case dataset and per-case results are released in
+the repository.
 
 \subsection{Qualitative Case Analysis}
 \label{sec:cases}
@@ -1165,8 +1202,8 @@ conclusions can be drawn.
       Small novel subset ($n=5$); single-run LLM evaluation &
       Acknowledged; results are indicative single-run values \\[4pt]
     Safety guard &
-      Not compared vs prompt-only or classifier alternatives &
-      Acknowledged; necessity claim softened to ``important'' \\
+      Compared vs prompt-only; not yet vs constrained decoding or classifiers &
+      Prompt-only comparison added; further alternatives are future work \\
     \hline
   \end{tabular}
 \end{table}
@@ -1278,7 +1315,8 @@ that populate the SOP knowledge base---creating a leakage risk that
 limits generalizability claims. We have not yet validated the system
 against real production incidents, obtained independent expert
 labeling, or compared the deterministic safety guard against
-alternative safety mechanisms.
+constrained-decoding or classifier-based alternatives (though we now
+include a prompt-only comparison in Section~4.4).
 
 The primary contribution is therefore architectural rather than
 empirical: we show that combining deterministic post-LLM safety
@@ -1355,8 +1393,7 @@ IEEE Author Center guidelines on AI-generated content.
 \bibliography{references}
 
 % ============================================================
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,
-  clip,keepaspectratio]{photo1}}]{Mohammed Ilham}
+\begin{IEEEbiography}{Mohammed Ilham}
   Mohammed Ilham is a student in the Department of Computer Science and
   Engineering at R.V.\ College of Engineering, Bengaluru, India. His
   research interests include cloud computing, AIOps, incident
@@ -1364,8 +1401,7 @@ IEEE Author Center guidelines on AI-generated content.
   language models in operational decision-support systems.
 \end{IEEEbiography}
 
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,
-  clip,keepaspectratio]{photo2}}]{Smriti Srivastava}
+\begin{IEEEbiography}{Smriti Srivastava}
   Smriti Srivastava is an Associate Professor in the Department of
   Computer Science and Engineering at R.V.\ College of Engineering,
   Bengaluru, India. Her research interests include artificial
