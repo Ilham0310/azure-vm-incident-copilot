@@ -77,37 +77,37 @@ and Deterministic Safety Enforcement}
 % ABSTRACT
 % ============================================================
 \begin{abstract}
-Cloud infrastructure incidents at scale demand triage systems that are
-both fast and accurate. Rule-based AIOps systems handle known failure
-patterns reliably but often fail to classify incidents outside their
-encoded rule coverage, while large
-language models (LLMs) introduce hallucination risk that can produce
-dangerous remediation suggestions. This paper presents a six-layer
-read-only architecture for Azure VM incident triage that combines a
-deterministic rule engine, dual-collection retrieval-augmented
-generation (RAG) memory, structured LLM reasoning with provider
-fallback, and a deterministic post-LLM safety guard enforcing six hard
-safety rules. We evaluate the system on a 100-case synthetic benchmark
-spanning 23 known incident patterns and 5 novel patterns, constructed
-from Azure documentation and public SRE runbooks. The rule engine with
-safety guard achieves 88.0\% accuracy (88/100), while removing the
-safety guard reduces accuracy to 82.0\%, primarily because
-platform-event cases are no longer correctly forced to abstention.
-LLM-only triage achieves lower overall accuracy (73.0\%) but higher
-novel-pattern accuracy than the rule baseline (60.0\% vs 20.0\%),
-indicating potential value for unseen incidents. LLM+SOP RAG and the
-full system each achieve 86.0\% accuracy in the static benchmark,
-suggesting that incident memory provides limited benefit in one-pass
-evaluation. In a separate 20-case longitudinal experiment,
-novel-pattern accuracy improves from 20.0\% to 80.0\% over five
-feedback-driven memory-update cycles, though the small novel subset
-($n=5$) makes this result directional rather than conclusive. The
-safety guard intercepts all~30 hand-crafted unsafe suggestions in the
-adversarial test set and produces no false blocks on healthy benchmark
-VMs. These results suggest that deterministic post-generation safety
-checks and feedback-driven retrieval memory are feasible design
-patterns for LLM-assisted cloud triage, but real incident validation
-and independent expert labeling remain necessary.
+Automated triage of Azure VM incidents poses a dual challenge: known
+failure patterns must be handled quickly and reliably, while novel
+signal combinations---those not anticipated at rule-authoring
+time---require reasoning that static threshold rules cannot provide.
+Existing rule-based AIOps platforms cover the former well but leave
+the latter largely unaddressed. Large language models (LLMs) can
+reason over free-form telemetry, yet their tendency to hallucinate
+makes unconstrained LLM output unsafe for operational use.
+
+We describe a six-layer, read-only triage architecture that pairs a
+deterministic rule engine with dual-collection RAG memory, structured
+LLM reasoning, and a post-generation safety guard that enforces six
+hard rules regardless of what the LLM produces. Evaluation on a
+100-case synthetic benchmark shows that the rule engine with the safety
+guard reaches 88.0\% accuracy; disabling the guard drops this to
+82.0\%, with the difference attributable to platform-event cases that
+the guard correctly forces to abstention. An LLM-only configuration
+scores lower overall (73.0\%) but handles novel patterns better than
+the rule baseline (60.0\% vs 20.0\%), which motivates the hybrid
+design. Adding SOP-grounded RAG context brings the LLM to near-parity
+with the rule engine (86.0\%), and the full system matches this in
+single-pass evaluation. A separate longitudinal experiment on 20
+held-out cases shows novel-pattern accuracy climbing from 20.0\% to
+80.0\% across five memory-update cycles, though the small novel subset
+($n=5$) limits the strength of this finding. On a 30-case adversarial
+safety test, the deterministic guard blocks all unsafe suggestions;
+prompt-only constraints miss one, underscoring the value of
+post-generation enforcement. The results indicate that combining
+deterministic safety enforcement with feedback-driven retrieval memory
+is a viable design pattern for LLM-assisted cloud triage, pending
+validation on real production incident data.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -122,82 +122,73 @@ cloud operations, Azure
 
 \subsection{Problem Statement}
 
-Cloud infrastructure downtime carries severe financial and operational
-consequences. Industry surveys place the average cost of high-impact
-unplanned data-centre outages in the hundreds of thousands of dollars
-per hour, with the most disruptive events reaching seven-figure
-totals~\cite{uptime2023outage}. Hyperscale
-cloud providers manage millions of virtual machine instances across
-global regions. At this scale, even a 0.1\% incident rate generates
-thousands of simultaneous alerts, far exceeding the capacity of on-call
-engineering teams to triage manually. Automated incident triage is
-therefore not a convenience but an operational necessity.
+When a cloud VM fails at 2 a.m., the on-call engineer needs an answer
+in seconds, not minutes. At hyperscale---where a single provider
+manages millions of VM instances---even a 0.1\% incident rate produces
+thousands of simultaneous alerts. Industry data suggests that
+high-impact outages routinely cost hundreds of thousands of dollars per
+hour~\cite{uptime2023outage}, making fast, accurate triage an
+operational necessity rather than a nice-to-have.
 
-Current AIOps systems for cloud VM triage are predominantly rule-based.
-Azure Monitor alert rules, Prometheus AlertManager, and similar
-platforms apply deterministic threshold conditions to telemetry
-streams: if CPU exceeds 95\% for five minutes, fire an alert. These
-systems are fast, auditable, and reliable for known failure patterns.
-However, they require manual threshold tuning for each metric, cannot
-generalize across correlated multi-signal failures, and often produce
-no useful output when incidents involve patterns not anticipated at
-rule-authoring time.
-In practice, novel failure modes---new OS versions, unexpected
-interaction effects between services, infrastructure changes---account
-for a disproportionate share of high-severity incidents precisely
-because they are not covered by existing rules~\cite{chen2024rcacopilot}.
+Today's AIOps platforms handle this through rule-based alerting.
+Azure Monitor, Prometheus AlertManager, and similar tools fire when
+telemetry crosses a threshold: CPU above 95\% for five minutes, disk
+latency above 100 ms, and so on. These rules are fast, auditable, and
+correct for the failure modes their authors anticipated. The problem is
+that novel failure modes---new OS versions, unexpected service
+interactions, infrastructure changes---are precisely the ones not
+covered by existing rules, and they tend to be the most severe
+incidents~\cite{chen2024rcacopilot}. A rule engine that produces no
+output is not helpful when the on-call engineer needs guidance most.
 
-Large language models offer a compelling alternative for novel pattern
-reasoning. An LLM can read free-form telemetry, reason over signal
-combinations, and generate contextually appropriate remediation
-suggestions without requiring explicit rule definitions. However, LLMs
-introduce a critical risk in production operations: hallucination. An
-LLM that confidently suggests restarting a VM during an active platform
-maintenance window, or recommends deleting an OS disk based on
-ambiguous signals, can cause data corruption or extended downtime that
-is worse than the original incident. Few published systems describe
-deterministic post-generation safety enforcement for LLM-generated
-cloud remediation suggestions in sufficient detail to evaluate its
-effect on triage safety.
+LLMs offer a different approach. Given free-form telemetry, an LLM can
+reason over signal combinations and suggest a diagnosis without
+requiring explicit rule definitions. The catch is hallucination: an LLM
+that confidently recommends restarting a VM during a platform
+maintenance window, or deleting an OS disk on ambiguous evidence, can
+turn a recoverable incident into a data-loss event. Few published
+systems address this by enforcing safety constraints after LLM
+generation rather than relying on the model to self-police.
 
-The gap this paper addresses is the limited published evidence on
-systems that combine:
-(a)~a strong deterministic rule baseline for known patterns,
-(b)~LLM reasoning for novel patterns,
-(c)~RAG memory for cumulative knowledge accumulation without
-retraining, and
-(d)~deterministic post-LLM safety enforcement that is applied after
-LLM generation and is not controlled by the LLM output. We present
-such a system and evaluate it empirically
-on 100 benchmark cases.
+This paper describes a system that tries to get the best of both
+worlds. We combine a deterministic rule engine for known patterns with
+LLM reasoning for novel ones, RAG memory that accumulates verified
+resolutions over time, and a post-generation safety guard that applies
+six hard rules unconditionally---regardless of what the LLM produced.
+The guard is not a prompt instruction; it is code that runs after
+generation and cannot be overridden by the model output.
 
 \subsection{Contributions}
 
+Our main contributions are:
+
 \begin{enumerate}
-\item A 6-layer architecture for LLM-assisted Azure VM incident triage
-  that combines a deterministic rule baseline, dual-collection RAG
-  memory, structured LLM reasoning, and a deterministic post-LLM safety
-  guard. On a 100-case synthetic benchmark the rule engine with safety
-  guard reaches 88.0\% overall accuracy; a safety-guard ablation shows
-  a 6-percentage-point improvement (82.0\%~$\to$~88.0\%).
-\item A dual-collection RAG design that separates static SOP knowledge
-  from a growing incident memory of human-verified resolutions, enabling
-  \emph{feedback-driven memory updates} without any LLM retraining. In
-  a longitudinal evaluation on a 20-case held-out set, novel-pattern
-  accuracy rises from 20.0\% to 80.0\% over five cycles of memory
-  growth; we deliberately avoid calling this ``learning'' because no
-  model weights change.
-\item A deterministic, post-LLM safety guard that applies six hard
-  safety rules as an unconditional override. Against 30 hand-crafted
-  adversarial suggestions spanning all six rules the guard intercepts
-  every one; on the 100-case benchmark it produces no false blocks on
-  healthy VMs. We position this as an \emph{important} architectural
-  component under the evaluated conditions, rather than a necessary one
-  in the absolute sense.
-\item A reproducibility-oriented synthetic benchmark of 100 cases spanning 23
-  known patterns and 5 novel patterns, together with evaluation scripts,
-  per-case detail records, and safety-ablation results, so that the
-  claims in Section~4 can be independently re-verified.
+\item \textbf{A six-layer hybrid triage architecture} that integrates
+  a deterministic rule engine, dual-collection RAG memory, LLM
+  reasoning with provider fallback, and a post-generation safety guard.
+  On a 100-case synthetic benchmark, the rule engine with safety guard
+  reaches 88.0\%; removing the guard drops accuracy by 6 percentage
+  points, with the difference concentrated in platform-event cases.
+
+\item \textbf{A dual-collection RAG design} that keeps static SOP
+  knowledge separate from a growing store of human-verified incident
+  resolutions. In a 20-case longitudinal experiment, novel-pattern
+  accuracy rises from 20.0\% to 80.0\% over five memory-update cycles.
+  We deliberately avoid the term ``learning'' here---no model weights
+  are updated; only the retrieval corpus grows.
+
+\item \textbf{A deterministic post-generation safety guard} that
+  applies six hard rules after LLM output is produced, independent of
+  what the model generated. Against 30 adversarial unsafe suggestions,
+  the guard blocks all 30; prompt-only constraints miss one. We
+  position the guard as an important component under the evaluated
+  conditions, not a universal solution.
+
+\item \textbf{A reproducibility-oriented benchmark and artifact
+  package} covering 100 synthetic cases, per-case result files,
+  evaluation scripts, and safety-ablation data, released at
+  \url{https://github.com/Ilham0310/azure-vm-incident-copilot}.
+\end{enumerate}
 \end{enumerate}
 
 % ============================================================
@@ -206,148 +197,104 @@ on 100 benchmark cases.
 
 \subsection{Rule-Based AIOps}
 
-Threshold-based alerting has been the backbone of IT operations
-monitoring for over two decades. Systems such as Nagios, Prometheus
-AlertManager, and Azure Monitor native alert rules evaluate
-deterministic conditions against telemetry streams and fire alerts when
-thresholds are breached. Critically, their primary advantages---speed,
-auditability, and zero false-negative rate for known patterns---come
-with a structural cost: every failure mode must be anticipated and
-encoded at rule-authoring time. Azure Monitor, for example, supports
-metric alert rules, log-based alerts, and activity log alerts, all
-evaluated deterministically against pre-configured
-thresholds~\cite{microsoft2024azuremonitor}. A broader survey of AIOps
-failure-management techniques~\cite{notaro2021aiops} distinguishes
-detection, localisation, and remediation stages, and observes that most
-production deployments remain detection- and correlation-oriented, with
-remediation still largely operator-driven. Log-based anomaly
-detection approaches~\cite{shi2021log} and multivariate time-series
-anomaly detection on service-level metrics~\cite{ma2021jumpstarting}
-further illustrate the state of practice before LLM-based reasoning
-was introduced.
+Threshold-based alerting has underpinned IT operations monitoring for
+decades. Nagios, Prometheus AlertManager, and Azure Monitor all work
+the same way: evaluate a condition against a telemetry stream, fire
+when the threshold is crossed. The advantages are real---these systems
+are fast, auditable, and essentially never miss a known failure
+pattern. The limitation is equally real: every failure mode must be
+anticipated and encoded before it can be detected. Azure Monitor
+supports metric, log-based, and activity-log alert rules, all
+evaluated against pre-configured
+thresholds~\cite{microsoft2024azuremonitor}. A survey of AIOps
+failure-management methods~\cite{notaro2021aiops} notes that most
+production deployments remain detection- and correlation-oriented;
+remediation is still largely left to human operators. Log anomaly
+detection~\cite{shi2021log} and multivariate time-series
+methods~\cite{ma2021jumpstarting} extend the detection layer but do
+not address the fundamental brittleness of rule-based coverage.
 
-Microsoft's internal AIOps research has explored automated alert
-correlation, noise reduction, and root cause analysis at
-scale~\cite{ahmed2023rootcause,xu2024xlifecycle}. These systems apply
-machine learning to cluster related alerts and reduce alert fatigue,
-but they remain fundamentally reactive: they classify and correlate
-known alert types rather than reasoning about novel failure patterns.
-The RCACopilot system~\cite{chen2024rcacopilot}
-demonstrates automated on-call incident diagnosis using LLM-based root
-cause analysis at Microsoft, but focuses on software service incidents
-rather than infrastructure-level VM triage and does not address safety
-enforcement.
+Microsoft's internal AIOps work has tackled alert correlation and
+noise reduction at scale~\cite{ahmed2023rootcause,xu2024xlifecycle},
+and the RCACopilot system~\cite{chen2024rcacopilot} applies LLM-based
+root cause analysis to on-call incident diagnosis. RCACopilot targets
+software service incidents rather than VM infrastructure, and does not
+address post-generation safety enforcement---a gap our work directly
+addresses.
 
-The fundamental limitation of rule-based AIOps is brittleness: rules
-must be manually authored for each failure pattern, require ongoing
-maintenance as infrastructure evolves, and produce no output for
-incidents outside their coverage. The Google SRE
-Book~\cite{beyer2016sre} acknowledges this limitation, noting that
-novel failure modes are disproportionately represented in
-high-severity incidents. Our system addresses this gap by combining a
-rule engine for known patterns with LLM reasoning for novel ones.
+The Google SRE Book~\cite{beyer2016sre} makes the point plainly:
+novel failure modes are over-represented in high-severity incidents
+precisely because they fall outside existing rule coverage. Our system
+is designed with this observation in mind.
 
 \subsection{LLM for Incident Management}
 
-In contrast to rule-based approaches, large language models offer
-generalization across unseen failure patterns. Built on transformer
-architectures~\cite{vaswani2017attention,devlin2019bert}, modern LLMs
-can read free-form telemetry, reason over signal combinations, and
-generate contextually appropriate remediation suggestions without
-requiring explicit rule definitions. Notably, chain-of-thought
-prompting~\cite{wei2022cot} enables LLMs to decompose complex
-diagnostic reasoning into intermediate steps---a property we exploit
-in our structured prompt design (Section~\ref{sec:layer6}).
+LLMs bring a qualitatively different capability to incident triage:
+the ability to reason over signal combinations that no rule anticipated.
+Built on transformer architectures~\cite{vaswani2017attention,devlin2019bert},
+modern instruction-tuned models~\cite{openai2023gpt4} can read
+free-form telemetry and produce a diagnosis without requiring explicit
+rule definitions. Chain-of-thought prompting~\cite{wei2022cot} further
+helps by decomposing complex diagnostic reasoning into intermediate
+steps, which we exploit in our structured prompt design.
 
 Domain-specific LLMs for IT operations have emerged as a distinct
-research direction. OWL~\cite{guo2024owl} is a large language model
-trained specifically on IT operations data, demonstrating that
-domain-specific pre-training improves performance on operational tasks.
-GPT-4~\cite{openai2023gpt4} and its successors have been applied to
-automated root cause analysis~\cite{zhang2023automated}, with
-promising results on cloud incident datasets. A comprehensive survey
-of LLM applications in cloud incident management~\cite{zeng2023aiops}
-identifies incident triage as a high-value use case but notes that
-production deployment remains limited due to reliability and safety
-concerns.
+direction. OWL~\cite{guo2024owl} shows that pre-training on
+operational data improves task performance. GPT-4 has been applied to
+automated root cause analysis~\cite{zhang2023automated} with
+encouraging results. A survey of LLM applications in cloud incident
+management~\cite{zeng2023aiops} identifies triage as high-value but
+notes that production deployment remains limited by reliability and
+safety concerns---a tension our architecture tries to resolve.
 
-Commercial systems such as Microsoft Copilot for Azure and GitHub
-Copilot for Operations provide LLM-assisted incident investigation,
-but these systems operate in advisory mode---they suggest actions for
-human review rather than making autonomous triage decisions. This
-design choice reflects the core challenge: LLMs fail to reliably
-self-correct errors in their own reasoning~\cite{huang2024selfcorrect},
-a limitation that extends to safety-critical suggestion
-generation---an LLM that produces an unsafe remediation step cannot be
-relied upon to detect and retract it without an external guard.
+Commercial tools like Microsoft Copilot for Azure operate in advisory
+mode, surfacing suggestions for human review. This is a deliberate
+choice: LLMs do not reliably self-correct their own
+errors~\cite{huang2024selfcorrect}, so an unsafe suggestion cannot be
+trusted to be retracted without an external check.
 
 \subsection{Retrieval-Augmented Generation in Operations}
 
-Retrieval-Augmented Generation (RAG), introduced by Lewis et
-al.~\cite{lewis2020rag}, augments LLM generation with retrieved
-context from an external knowledge store. The underlying embedding
-technology traces to dense vector representations of
-text~\cite{mikolov2013word2vec}, refined through transformer-based
-sentence encoders~\cite{devlin2019bert} and ultimately the
-Sentence-BERT architecture~\cite{reimers2019sbert} that underpins the
-\texttt{all-MiniLM-L6-v2} model we use. RAG addresses the knowledge
-staleness problem inherent in static LLM training: by retrieving
-relevant documents at inference time, the system can incorporate
-information that postdates the model's training cutoff without
-retraining.
+RAG, introduced by Lewis et al.~\cite{lewis2020rag}, grounds LLM
+generation in retrieved context from an external store. The embedding
+technology behind it traces from word vectors~\cite{mikolov2013word2vec}
+through transformer sentence encoders~\cite{devlin2019bert} to the
+Sentence-BERT architecture~\cite{reimers2019sbert} that we use via
+\texttt{all-MiniLM-L6-v2}. The practical benefit for operational
+systems is that the knowledge base can be updated instantly---a
+resolved incident is retrievable within seconds, without any
+retraining cycle.
 
-In IT operations, RAG has been applied to runbook retrieval, SOP
-grounding, and incident post-mortem analysis. Toro Isaza et
-al.~\cite{isaza2024ragitsupport} demonstrate that RAG-augmented
-incident resolution systems outperform pure LLM approaches on IT
-support tasks by providing grounded, verifiable context from historical
-tickets. Our system extends this approach with a dual-collection
-architecture: one ChromaDB collection for SOP knowledge (static,
-curated) and one for incident memory (dynamic, grows with each resolved
-incident). Human-verified cases are prioritized in retrieval, ensuring
-that confirmed resolutions rank above unverified LLM outputs.
-
-A key advantage of RAG over fine-tuning for operational systems is
-online updateability. Fine-tuning requires retraining cycles that may
-take hours to days, while RAG memory updates are instantaneous---a
-resolved incident is available for retrieval within seconds of being
-stored. This property is what enables the feedback-driven memory-update
-loop described in Section~\ref{sec:layer6}; we deliberately avoid the
-term ``learning'' for this loop because no model weights are updated.
+Toro Isaza et al.~\cite{isaza2024ragitsupport} show that RAG-augmented
+IT support systems outperform pure LLM approaches by providing
+grounded, verifiable context from historical tickets. We extend this
+with a dual-collection design: one ChromaDB collection for static,
+curated SOPs and one for a growing store of human-verified incident
+resolutions. Verified cases are ranked above unverified ones in
+retrieval, so the system naturally improves as engineers confirm
+diagnoses over time.
 
 \subsection{Safety Enforcement in Agentic AI Systems}
 
-As LLM-based agents gain the ability to take actions with real-world
-consequences, safety enforcement has emerged as a critical research
-area. Constitutional AI~\cite{bai2022constitutional} proposes training
-LLMs with explicit safety principles, but this approach relies on the
-model's learned behavior and cannot provide hard guarantees---red-teaming
-studies~\cite{perez2022redteaming} and automated adversarial-suffix
-attacks~\cite{zou2023universal} have shown that sufficiently adversarial
-prompts can still elicit unsafe outputs from constitutionally trained
-models.
+Constitutional AI~\cite{bai2022constitutional} trains safety
+principles into the model itself, but red-teaming
+studies~\cite{perez2022redteaming} and adversarial-suffix
+attacks~\cite{zou2023universal} have shown that even constitutionally
+trained models can be induced to produce unsafe outputs. For cloud
+operations, the consequences of a single unsafe suggestion can be
+severe: restarting a VM during platform maintenance risks data
+corruption; deleting an OS disk is irreversible; disabling NSG rules
+exposes the VM to the internet.
 
-For cloud infrastructure operations, the stakes of unsafe actions are
-particularly high. Restarting a VM during a platform maintenance window
-can cause data corruption. Deleting an OS disk based on ambiguous
-signals is irreversible. Disabling NSG rules to ``debug connectivity''
-exposes the VM to the public internet. These actions share a common
-property: they are easy to suggest, difficult to reverse, and
-potentially catastrophic.
-
-Our approach complements learned safety with a deterministic, post-LLM
-safety guard that applies six hard rules as a final override layer.
-The guard is not a prompt instruction or a fine-tuned behavior---it is
-imperative code that runs after LLM output is generated and cannot be
-bypassed by any LLM output, including prompt-injection or suffix
-attacks. This design provides hard enforcement for the specified rule
-classes, at the cost of some flexibility in
-edge cases where the safety rules may be overly conservative. We
-position the guard as an important architectural component for the
-settings we evaluate, rather than as a universally necessary one;
-establishing necessity in a stricter sense would require head-to-head
-comparison with prompt-only, constrained-decoding, and
-classifier-validator alternatives, which we leave to future work.
+Our safety guard takes a different approach. Rather than relying on
+the model to self-police, we apply six hard rules as a post-generation
+override layer. The guard is imperative code, not a prompt instruction,
+and it runs after the LLM has already produced its output. This
+provides hard enforcement for the rule classes it covers, at the cost
+of some rigidity in edge cases. We compare it against prompt-only
+constraints in Section~4.4 and find that prompt-only misses one case
+that the guard catches; broader comparisons against constrained
+decoding or classifier-based validators remain future work.
 
 % ============================================================
 \section{System Architecture}
@@ -1287,26 +1234,43 @@ dataset needed for statistically conclusive novel pattern evaluation.
 \section{Conclusion}
 \label{sec:conclusion}
 
-Cloud VM incident triage at scale requires systems that handle both
-known and novel failure patterns while enforcing safety constraints on
-remediation suggestions. This paper presented a 6-layer architecture
-combining a deterministic rule engine, dual-collection RAG memory with
-sentence-transformer embeddings, structured LLM reasoning with
-multi-provider fallback, and a deterministic post-LLM safety guard
-enforcing six hard safety rules. On a 100-case synthetic benchmark the
-rule engine with safety guard reaches 88.0\% overall accuracy; a
-safety-guard ablation shows a 6-percentage-point improvement
-attributable to the guard. The LLM-only configuration performed worse
-overall but better on the five novel cases, indicating potential value
-for unseen incident patterns. LLM+SOP RAG and the full system each
-achieved 86.0\% accuracy in the static benchmark, suggesting that
-incident memory does not improve one-pass accuracy before feedback
-accumulation. In a longitudinal experiment on a 20-case held-out
-set, novel-pattern accuracy rises from 20.0\% to 80.0\% over five
-feedback-driven memory-update cycles, although the small novel subset
-makes this result preliminary. The safety guard intercepts all~30
-hand-crafted adversarial suggestions while producing no false blocks
-on the benchmark's healthy-VM cases.
+We set out to build a triage system that could handle both the
+predictable and the unpredictable: known VM failure patterns that
+rule engines cover well, and novel signal combinations that they do
+not. The architecture we describe layers a deterministic rule engine,
+dual-collection RAG memory, LLM reasoning, and a post-generation
+safety guard that enforces six hard rules regardless of what the model
+produced.
+
+On a 100-case synthetic benchmark, the rule engine with the safety
+guard reaches 88.0\% accuracy. Removing the guard costs 6 percentage
+points, with the loss concentrated in platform-event cases where the
+guard correctly forces abstention. The LLM alone scores lower overall
+(73.0\%) but handles novel patterns better than the rule baseline
+(60.0\% vs 20.0\%), which is the motivation for the hybrid design.
+Adding SOP-grounded RAG context brings the LLM to near-parity with
+the rule engine (86.0\%), and the full system matches this in
+single-pass evaluation. A 20-case longitudinal experiment shows
+novel-pattern accuracy climbing from 20.0\% to 80.0\% over five
+memory-update cycles, though the small novel subset limits how much
+weight this result can carry. On the adversarial safety test, the
+deterministic guard blocks all 30 unsafe suggestions; prompt-only
+constraints miss one.
+
+These are encouraging results, but they come with important caveats.
+The benchmark is entirely synthetic, the novel subset is small, and
+the benchmark and SOP corpus share the same documentation sources,
+creating a leakage risk. We have not validated the system on real
+production incidents, and we have not compared the safety guard against
+constrained decoding or classifier-based alternatives.
+
+What we can say is that the architecture works as designed on the
+evaluated cases, and that the design choices---post-generation safety
+enforcement, dual-collection RAG, explicit abstention---each
+contribute measurably to the results. The most important next step is
+shadow-mode deployment against real Azure incident logs, which would
+provide the ground-truth data needed to move from ``promising on
+synthetic data'' to ``validated in practice.''
 
 These results are promising but preliminary. The evaluation is
 entirely synthetic, the novel-pattern subset contains only five cases,
@@ -1318,29 +1282,22 @@ labeling, or compared the deterministic safety guard against
 constrained-decoding or classifier-based alternatives (though we now
 include a prompt-only comparison in Section~4.4).
 
-The primary contribution is therefore architectural rather than
-empirical: we show that combining deterministic post-LLM safety
-enforcement with feedback-driven retrieval memory is a feasible design
-pattern for safe LLM-assisted cloud incident triage. Beyond the
-Azure-specific implementation, three system-design lessons may be
-relevant to other LLM-assisted operations systems: (1)~\emph{deterministic
-post-generation guards provide an auditable safety boundary that does
-not depend on LLM compliance with prompt instructions};
-(2)~\emph{separating static knowledge (SOPs) from dynamic
-memory (verified cases)} allows the retrieval corpus to grow without
-contaminating curated knowledge; and (3)~\emph{honest confidence
-scoring with explicit abstention} is preferable to overconfident
-diagnosis---the system's 0\% false-positive rate on healthy VMs comes
-from its willingness to abstain rather than from perfect accuracy.
-The concrete next steps are (1)~shadow-mode validation against real
-Azure incident logs, (2)~a larger and independently constructed
-benchmark with strict leakage controls, (3)~ablation isolating the
-safety guard against alternative safety mechanisms, and
-(4)~fleet-level multi-VM correlation analysis. The telemetry schema
-and decision policy are not inherently Azure-specific; adapting the
-system to AWS CloudWatch or GCP Cloud Monitoring would require
-replacing the Azure-specific field definitions while retaining the
-pipeline structure, though we have not yet demonstrated this.
+Three design observations from this work may be relevant beyond the
+Azure VM context: (1)~post-generation safety enforcement provides an
+auditable boundary that does not depend on the model following prompt
+instructions; (2)~keeping static SOP knowledge separate from dynamic
+verified-case memory lets the retrieval corpus grow without
+contaminating curated content; and (3)~explicit abstention under low
+confidence is more reliable than forcing a diagnosis---the system's
+zero false-positive rate on healthy VMs comes from its willingness to
+say ``I need more data,'' not from perfect accuracy.
+
+The path forward is clear: shadow-mode validation against real Azure
+incident logs, a larger benchmark with strict leakage controls, and
+comparison of the safety guard against alternative enforcement
+mechanisms. The telemetry schema and decision policy are not
+inherently Azure-specific, but adapting them to other cloud platforms
+remains future work.
 
 % ============================================================
 \section*{Reproducibility Details}
